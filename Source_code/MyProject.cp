@@ -19,9 +19,9 @@ if(INTCON & 0x04) {
  flexA1 = ATD_read1();
  flexD1 = (unsigned int)(flexA1*50)/1023;
  if((flexD0>34)||(flexD1>34)){
- PORTB = PORTB | 0x01;
+ PORTB = PORTB | 0x02;
  }
- else PORTB = PORTB & 0xFE;
+ else PORTB = PORTB & 0xFD;
  }
 INTCON = INTCON & 0xFB;
 }
@@ -34,7 +34,6 @@ void main() {
  INTCON = 0xA0;
  TMR0 = 0;
  while(1){
-
  }
  }
 

@@ -18,9 +18,9 @@ if(INTCON & 0x04) { // TMR0 overflow interrupt occurs every 32ms
    flexA1 = ATD_read1();
    flexD1 = (unsigned int)(flexA1*50)/1023;
    if((flexD0>34)||(flexD1>34)){
-   PORTB = PORTB | 0x01;
+   PORTB = PORTB | 0x02;   // Turn on RB1
    }
-   else PORTB = PORTB & 0xFE;
+   else PORTB = PORTB & 0xFD;  // Turn off RB1
    }
 INTCON = INTCON & 0xFB; // clear the interrupt flag
 }
@@ -33,7 +33,6 @@ void main() {
   INTCON = 0xA0; // Global Interrupt Enable and Local Enable the TMR0 Overflow Interrupt
   TMR0 = 0;
   while(1){
-
   }
  }
  
