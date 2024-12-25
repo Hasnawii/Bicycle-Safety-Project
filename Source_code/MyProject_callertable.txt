@@ -1,0 +1,7 @@
+main
+	ATD_init
+interrupt
+	ATD_read0
+	Mul_16X16_U
+	Div_16X16_U
+	ATD_read1
