@@ -42,9 +42,9 @@ L_interrupt0:
 	GOTO       L_interrupt3
 ;MyProject.c,37 :: 		tick++; // Increment tick every 32ms
 	INCF       _tick+0, 1
-;MyProject.c,40 :: 		if (tick == 2) {
+;MyProject.c,40 :: 		if (tick == 3) {
 	MOVF       _tick+0, 0
-	XORLW      2
+	XORLW      3
 	BTFSS      STATUS+0, 2
 	GOTO       L_interrupt4
 ;MyProject.c,41 :: 		tick = 0;

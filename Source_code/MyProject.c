@@ -37,7 +37,7 @@ void interrupt() {
         tick++; // Increment tick every 32ms
 
         // ADC Sampling Logic (~64ms)
-        if (tick == 2) {
+        if (tick == 3) {
             tick = 0;
 
             // Read ADC values

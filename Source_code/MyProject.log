@@ -2,10 +2,10 @@
 hint: 0	1139	Available RAM: 352 [bytes], Available ROM: 8192 [bytes]	 
 diagnostics: 0	122	Compilation Started	MyProject.c
 diagnostics: 141	123	Compiled Successfully	MyProject.c
-diagnostics: 0	127	All files Compiled in 47 ms	 
+diagnostics: 0	127	All files Compiled in 46 ms	 
 hint: 0	1144	Used RAM (bytes): 19 (5%)  Free RAM (bytes): 333 (95%)	Used RAM (bytes): 19 (5%)  Free RAM (bytes): 333 (95%)
 hint: 0	1144	Used ROM (program words): 293 (4%)  Free ROM (program words): 7899 (96%)	Used ROM (program words): 293 (4%)  Free ROM (program words): 7899 (96%)
 diagnostics: 0	125	Project Linked Successfully	MyProject.mcppi
 diagnostics: 0	128	Linked in 16 ms	 
-diagnostics: 0	129	Project 'MyProject.mcppi' completed: 313 ms	 
-diagnostics: 0	103	Finished successfully: 27 Dec 2024, 01:14:02	MyProject.mcppi
+diagnostics: 0	129	Project 'MyProject.mcppi' completed: 219 ms	 
+diagnostics: 0	103	Finished successfully: 27 Dec 2024, 01:20:22	MyProject.mcppi

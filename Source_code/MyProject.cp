@@ -38,7 +38,7 @@ void interrupt() {
  tick++;
 
 
- if (tick == 2) {
+ if (tick == 3) {
  tick = 0;
 
 
