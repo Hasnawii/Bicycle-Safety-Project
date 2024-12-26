@@ -247,6 +247,7 @@ irp
 irp_bit
 longint2double
 longword2double
+lturn
 main
 mul_16x16_s
 mul_16x16_u
@@ -451,6 +452,7 @@ rp1
 rp1_bit
 rsen
 rsen_bit
+rturn
 rx9
 rx9_bit
 rx9d
@@ -522,6 +524,10 @@ t2ckps1
 t2ckps1_bit
 t2con
 tick
+tick1
+tick2
+ticka
+tickb
 tmr0
 tmr0ie
 tmr0ie_bit
