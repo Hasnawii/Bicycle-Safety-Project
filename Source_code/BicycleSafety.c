@@ -1,15 +1,15 @@
 // Global Variables
-unsigned char tick;
-unsigned char tick1;
-unsigned char tick2;
-unsigned char ticka;
-unsigned char tickb;
-unsigned char rturn;
-unsigned char lturn;
-unsigned int flexA0;
-unsigned int flexA1;
-unsigned int flexD0;
-unsigned int flexD1;
+unsigned char tick;    // Counter for Timer0 interrupt, increments every 32ms
+unsigned char tick1;   // Counter for right turn signal duration (~5 seconds)
+unsigned char tick2;   // Counter for left turn signal duration (~5 seconds)
+unsigned char ticka;   // Counter for right turn signal blinking interval (~480ms)
+unsigned char tickb;   // Counter for left turn signal blinking interval (~480ms)
+unsigned char rturn;   // Flag indicating the right turn signal is active (1 = active, 0 = inactive)
+unsigned char lturn;   // Flag indicating the left turn signal is active (1 = active, 0 = inactive)
+unsigned int flexA0;   // Raw ADC value from channel AN0 (e.g., flex sensor)
+unsigned int flexA1;   // Raw ADC value from channel AN1 (e.g., flex sensor)
+unsigned int flexD0;   // Scaled ADC value from AN0 (e.g., flex sensor percentage)
+unsigned int flexD1;   // Scaled ADC value from AN1 (e.g., flex sensor percentage)
 
 // Function Declarations
 void ATD_init(void);
