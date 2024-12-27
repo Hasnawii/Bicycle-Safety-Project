@@ -1,11 +1,11 @@
 0	1	mikroCPIC1618.exe -MSF -DBG -pP16F877A -DL -O11111114 -fo8 -N"C:\Users\Hasnawi\Desktop\Uni\Y4S1\Embedded Systems\Project\Final Design\Bicycle-Safety-Project\Source_code\MyProject.mcppi" -SP"C:\Program Files (x86)\MicroC\mikroC PRO for PIC\Defs\" -SP"C:\Program Files (x86)\MicroC\mikroC PRO for PIC\Uses\P16\" -SP"C:\Users\Hasnawi\Desktop\Uni\Y4S1\Embedded Systems\Project\Final Design\Bicycle-Safety-Project\Source_code\" -IP"C:\Program Files (x86)\MicroC\mikroC PRO for PIC\Uses\P16\" "BicycleSafety.c" "__Lib_Math.mcl" "__Lib_MathDouble.mcl" "__Lib_System.mcl" "__Lib_Delays.mcl"	 
 hint: 0	1139	Available RAM: 352 [bytes], Available ROM: 8192 [bytes]	 
 diagnostics: 0	122	Compilation Started	BicycleSafety.c
-diagnostics: 141	123	Compiled Successfully	BicycleSafety.c
-diagnostics: 0	127	All files Compiled in 63 ms	 
-hint: 0	1144	Used RAM (bytes): 19 (5%)  Free RAM (bytes): 333 (95%)	Used RAM (bytes): 19 (5%)  Free RAM (bytes): 333 (95%)
-hint: 0	1144	Used ROM (program words): 293 (4%)  Free ROM (program words): 7899 (96%)	Used ROM (program words): 293 (4%)  Free ROM (program words): 7899 (96%)
+diagnostics: 188	123	Compiled Successfully	BicycleSafety.c
+diagnostics: 0	127	All files Compiled in 62 ms	 
+hint: 0	1144	Used RAM (bytes): 34 (10%)  Free RAM (bytes): 318 (90%)	Used RAM (bytes): 34 (10%)  Free RAM (bytes): 318 (90%)
+hint: 0	1144	Used ROM (program words): 791 (10%)  Free ROM (program words): 7401 (90%)	Used ROM (program words): 791 (10%)  Free ROM (program words): 7401 (90%)
 diagnostics: 0	125	Project Linked Successfully	MyProject.mcppi
 diagnostics: 0	128	Linked in 31 ms	 
 diagnostics: 0	129	Project 'MyProject.mcppi' completed: 250 ms	 
-diagnostics: 0	103	Finished successfully: 27 Dec 2024, 15:52:03	MyProject.mcppi
+diagnostics: 0	103	Finished successfully: 28 Dec 2024, 01:03:26	MyProject.mcppi

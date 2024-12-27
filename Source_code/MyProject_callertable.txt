@@ -5,3 +5,5 @@ interrupt
 	Mul_16X16_U
 	Div_16X16_U
 	ATD_read1
+	ATD_read2
+	Div_32x32_U

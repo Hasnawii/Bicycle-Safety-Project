@@ -42,6 +42,7 @@ adresl
 atd_init
 atd_read0
 atd_read1
+atd_read2
 b0
 b1
 b2
@@ -178,6 +179,7 @@ delay_5ms
 delay_80us
 delay_8ms
 delay_cyc
+dis
 div_16x16_s
 div_16x16_s_l
 div_16x16_u
@@ -225,6 +227,8 @@ go_done
 go_done_bit
 go_not_done
 go_not_done_bit
+halla2
+halld2
 ibf
 ibf_bit
 ibf_trise_bit
@@ -335,6 +339,7 @@ pspif_bit
 pspmode
 pspmode_bit
 pspmode_trise_bit
+pulse
 r
 r_bit
 r_not_w
@@ -526,6 +531,8 @@ t2con
 tick
 tick1
 tick2
+tick3
+tick4
 ticka
 tickb
 tmr0
@@ -649,6 +656,7 @@ txreg
 txsta
 ua
 ua_bit
+v
 vdelay_advanced_ms
 vdelay_ms
 w

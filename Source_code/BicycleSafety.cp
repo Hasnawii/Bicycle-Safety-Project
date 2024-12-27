@@ -3,6 +3,8 @@
 unsigned char tick;
 unsigned char tick1;
 unsigned char tick2;
+unsigned char tick3;
+unsigned char tick4;
 unsigned char ticka;
 unsigned char tickb;
 unsigned char rturn;
@@ -11,12 +13,17 @@ unsigned int flexA0;
 unsigned int flexA1;
 unsigned int flexD0;
 unsigned int flexD1;
+unsigned int hallA2;
+unsigned int hallD2;
+unsigned int pulse;
+unsigned long int dis;
+unsigned int v;
 
 
 void ATD_init(void);
 unsigned int ATD_read0(void);
 unsigned int ATD_read1(void);
-
+unsigned int ATD_read2(void);
 
 
 void interrupt() {
@@ -36,9 +43,11 @@ void interrupt() {
 
  if (INTCON & 0x04) {
  tick++;
+ tick3++;
+ tick4++;
 
 
- if (tick == 3) {
+ if (tick == 2) {
  tick = 0;
 
 
@@ -59,6 +68,7 @@ void interrupt() {
  if (rturn == 1) {
  tick1++;
  ticka++;
+
  if (ticka == 15) {
  ticka = 0;
  PORTB ^= 0x04;
@@ -74,6 +84,7 @@ void interrupt() {
  if (lturn == 1) {
  tick2++;
  tickb++;
+
  if (tickb == 15) {
  tickb = 0;
  PORTB ^= 0x08;
@@ -83,6 +94,37 @@ void interrupt() {
  lturn = 0;
  PORTB &= 0xF7;
  }
+ }
+
+
+ if (tick3 == 7) {
+ tick3 = 0;
+
+
+ hallA2 = ATD_read2();
+ hallD2 = (unsigned int)(hallA2 * 50) / 1023;
+
+
+ if (hallD2 > 10) {
+ pulse++;
+ }
+ }
+
+
+ if (tick4 == 219) {
+ tick4 = 0;
+
+
+ dis = (unsigned long int)(314 * 35 * pulse) / 2;
+
+
+
+
+ v = dis / 700;
+
+
+
+ pulse = 0;
  }
 
  INTCON &= 0xFB;
@@ -103,11 +145,7 @@ void main() {
  TMR0 = 0;
 
 
- tick = 0;
- tick1 = 0;
- tick2 = 0;
- ticka = 0;
- tickb = 0;
+ tick = tick1 = tick2 = tick3 = tick4 = ticka = tickb = pulse = 0;
 
 
  while (1) {
@@ -135,6 +173,15 @@ unsigned int ATD_read0(void) {
 
 unsigned int ATD_read1(void) {
  ADCON0 = (ADCON0 & 0xCF) | 0x08;
+ delay_us(10);
+ ADCON0 |= 0x04;
+ while (ADCON0 & 0x04);
+ return ((ADRESH << 8) | ADRESL);
+}
+
+
+unsigned int ATD_read2(void) {
+ ADCON0 = (ADCON0 & 0xD7) | 0x10;
  delay_us(10);
  ADCON0 |= 0x04;
  while (ADCON0 & 0x04);
