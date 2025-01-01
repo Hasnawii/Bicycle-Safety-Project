@@ -6,7 +6,7 @@ Value=0
 [BUILD_TYPE]
 Value=0
 [ACTIVE_TAB]
-Value=BicycleSafetySystem.c
+Value=BicycleSafetyProject.c
 [USE_EEPROM]
 Value=0
 [USE_HEAP]
@@ -16,7 +16,7 @@ Value=0
 [EEPROM_DEFINITION]
 Value=
 [FILES]
-File0=BicycleSafetySystem.c
+File0=BicycleSafetyProject.c
 Count=1
 [BINARIES]
 Count=0
@@ -24,7 +24,8 @@ Count=0
 Count=0
 ActiveImageIndex=-1
 [OPENED_FILES]
-Count=0
+File0=BicycleSafetyProject.c
+Count=1
 [EEPROM]
 Count=0
 [ACTIVE_COMMENTS_FILES]

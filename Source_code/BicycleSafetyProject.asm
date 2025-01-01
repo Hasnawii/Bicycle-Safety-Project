@@ -8,60 +8,60 @@ _interrupt:
 	MOVWF      ___savePCLATH+0
 	CLRF       PCLATH+0
 
-;BicycleSafetySystem.c,42 :: 		void interrupt() {
-;BicycleSafetySystem.c,44 :: 		if (INTCON & 0x01) {
+;BicycleSafetyProject.c,42 :: 		void interrupt() {
+;BicycleSafetyProject.c,44 :: 		if (INTCON & 0x01) {
 	BTFSS      INTCON+0, 0
 	GOTO       L_interrupt0
-;BicycleSafetySystem.c,45 :: 		if (!(PORTB & 0x10)) {   // Check if RB5 (right turn button) is pressed
+;BicycleSafetyProject.c,45 :: 		if (!(PORTB & 0x10)) {   // Check if RB5 (right turn button) is pressed
 	BTFSC      PORTB+0, 4
 	GOTO       L_interrupt1
-;BicycleSafetySystem.c,46 :: 		PORTB |= 0x04;      // Turn on RB2 (right turn signal)
+;BicycleSafetyProject.c,46 :: 		PORTB |= 0x04;      // Turn on RB2 (right turn signal)
 	BSF        PORTB+0, 2
-;BicycleSafetySystem.c,47 :: 		rturn = 1;          // Set right turn flag
+;BicycleSafetyProject.c,47 :: 		rturn = 1;          // Set right turn flag
 	MOVLW      1
 	MOVWF      _rturn+0
-;BicycleSafetySystem.c,48 :: 		}
+;BicycleSafetyProject.c,48 :: 		}
 L_interrupt1:
-;BicycleSafetySystem.c,49 :: 		if (!(PORTB & 0x20)) {   // Check if RB6 (left turn button) is pressed
+;BicycleSafetyProject.c,49 :: 		if (!(PORTB & 0x20)) {   // Check if RB6 (left turn button) is pressed
 	BTFSC      PORTB+0, 5
 	GOTO       L_interrupt2
-;BicycleSafetySystem.c,50 :: 		PORTB |= 0x08;      // Turn on RB3 (left turn signal)
+;BicycleSafetyProject.c,50 :: 		PORTB |= 0x08;      // Turn on RB3 (left turn signal)
 	BSF        PORTB+0, 3
-;BicycleSafetySystem.c,51 :: 		lturn = 1;          // Set left turn flag
+;BicycleSafetyProject.c,51 :: 		lturn = 1;          // Set left turn flag
 	MOVLW      1
 	MOVWF      _lturn+0
-;BicycleSafetySystem.c,52 :: 		}
+;BicycleSafetyProject.c,52 :: 		}
 L_interrupt2:
-;BicycleSafetySystem.c,53 :: 		INTCON &= 0xFE;          // Clear PORTB Change Interrupt flag
+;BicycleSafetyProject.c,53 :: 		INTCON &= 0xFE;          // Clear PORTB Change Interrupt flag
 	MOVLW      254
 	ANDWF      INTCON+0, 1
-;BicycleSafetySystem.c,54 :: 		}
+;BicycleSafetyProject.c,54 :: 		}
 L_interrupt0:
-;BicycleSafetySystem.c,57 :: 		if (INTCON & 0x04) {
+;BicycleSafetyProject.c,57 :: 		if (INTCON & 0x04) {
 	BTFSS      INTCON+0, 2
 	GOTO       L_interrupt3
-;BicycleSafetySystem.c,58 :: 		tick++;                  // Increment Timer0 counter (~32ms per increment)
+;BicycleSafetyProject.c,58 :: 		tick++;                  // Increment Timer0 counter (~32ms per increment)
 	INCF       _tick+0, 1
-;BicycleSafetySystem.c,59 :: 		tick3++;                 // Increment hall sensor pulse counter
+;BicycleSafetyProject.c,59 :: 		tick3++;                 // Increment hall sensor pulse counter
 	INCF       _tick3+0, 1
-;BicycleSafetySystem.c,60 :: 		tick4++;                 // Increment speed calculation counter
+;BicycleSafetyProject.c,60 :: 		tick4++;                 // Increment speed calculation counter
 	INCF       _tick4+0, 1
-;BicycleSafetySystem.c,61 :: 		tick5++;                 // Increment ultrasonic sensor counter
+;BicycleSafetyProject.c,61 :: 		tick5++;                 // Increment ultrasonic sensor counter
 	INCF       _tick5+0, 1
-;BicycleSafetySystem.c,64 :: 		if (tick == 2) {
+;BicycleSafetyProject.c,64 :: 		if (tick == 2) {
 	MOVF       _tick+0, 0
 	XORLW      2
 	BTFSS      STATUS+0, 2
 	GOTO       L_interrupt4
-;BicycleSafetySystem.c,65 :: 		tick = 0;
+;BicycleSafetyProject.c,65 :: 		tick = 0;
 	CLRF       _tick+0
-;BicycleSafetySystem.c,68 :: 		flexA0 = ATD_read0();
+;BicycleSafetyProject.c,68 :: 		flexA0 = ATD_read0();
 	CALL       _ATD_read0+0
 	MOVF       R0+0, 0
 	MOVWF      _flexA0+0
 	MOVF       R0+1, 0
 	MOVWF      _flexA0+1
-;BicycleSafetySystem.c,69 :: 		flexD0 = (unsigned int)(flexA0 * 50) / 1023;  // Scale AN0 reading
+;BicycleSafetyProject.c,69 :: 		flexD0 = (unsigned int)(flexA0 * 50) / 1023;  // Scale AN0 reading
 	MOVLW      50
 	MOVWF      R4+0
 	MOVLW      0
@@ -76,13 +76,13 @@ L_interrupt0:
 	MOVWF      _flexD0+0
 	MOVF       R0+1, 0
 	MOVWF      _flexD0+1
-;BicycleSafetySystem.c,70 :: 		flexA1 = ATD_read1();
+;BicycleSafetyProject.c,70 :: 		flexA1 = ATD_read1();
 	CALL       _ATD_read1+0
 	MOVF       R0+0, 0
 	MOVWF      _flexA1+0
 	MOVF       R0+1, 0
 	MOVWF      _flexA1+1
-;BicycleSafetySystem.c,71 :: 		flexD1 = (unsigned int)(flexA1 * 50) / 1023;  // Scale AN1 reading
+;BicycleSafetyProject.c,71 :: 		flexD1 = (unsigned int)(flexA1 * 50) / 1023;  // Scale AN1 reading
 	MOVLW      50
 	MOVWF      R4+0
 	MOVLW      0
@@ -97,7 +97,7 @@ L_interrupt0:
 	MOVWF      _flexD1+0
 	MOVF       R0+1, 0
 	MOVWF      _flexD1+1
-;BicycleSafetySystem.c,74 :: 		if ((flexD0 > 34) || (flexD1 > 34)) {
+;BicycleSafetyProject.c,74 :: 		if ((flexD0 > 34) || (flexD1 > 34)) {
 	MOVF       _flexD0+1, 0
 	SUBLW      0
 	BTFSS      STATUS+0, 2
@@ -118,106 +118,106 @@ L__interrupt53:
 	GOTO       L__interrupt49
 	GOTO       L_interrupt7
 L__interrupt49:
-;BicycleSafetySystem.c,75 :: 		PORTB |= 0x02;   // Turn on RB1
+;BicycleSafetyProject.c,75 :: 		PORTB |= 0x02;   // Turn on RB1
 	BSF        PORTB+0, 1
-;BicycleSafetySystem.c,76 :: 		} else {
+;BicycleSafetyProject.c,76 :: 		} else {
 	GOTO       L_interrupt8
 L_interrupt7:
-;BicycleSafetySystem.c,77 :: 		PORTB &= 0xFD;   // Turn off RB1
+;BicycleSafetyProject.c,77 :: 		PORTB &= 0xFD;   // Turn off RB1
 	MOVLW      253
 	ANDWF      PORTB+0, 1
-;BicycleSafetySystem.c,78 :: 		}
+;BicycleSafetyProject.c,78 :: 		}
 L_interrupt8:
-;BicycleSafetySystem.c,79 :: 		}
+;BicycleSafetyProject.c,79 :: 		}
 L_interrupt4:
-;BicycleSafetySystem.c,82 :: 		if (rturn == 1) {
+;BicycleSafetyProject.c,82 :: 		if (rturn == 1) {
 	MOVF       _rturn+0, 0
 	XORLW      1
 	BTFSS      STATUS+0, 2
 	GOTO       L_interrupt9
-;BicycleSafetySystem.c,83 :: 		tick1++;             // Increment right turn duration counter
+;BicycleSafetyProject.c,83 :: 		tick1++;             // Increment right turn duration counter
 	INCF       _tick1+0, 1
-;BicycleSafetySystem.c,84 :: 		ticka++;             // Increment right turn blinking interval counter
+;BicycleSafetyProject.c,84 :: 		ticka++;             // Increment right turn blinking interval counter
 	INCF       _ticka+0, 1
-;BicycleSafetySystem.c,86 :: 		if (ticka == 15) {   // Toggle RB2 (right turn signal) every ~480ms
+;BicycleSafetyProject.c,86 :: 		if (ticka == 15) {   // Toggle RB2 (right turn signal) every ~480ms
 	MOVF       _ticka+0, 0
 	XORLW      15
 	BTFSS      STATUS+0, 2
 	GOTO       L_interrupt10
-;BicycleSafetySystem.c,87 :: 		ticka = 0;
+;BicycleSafetyProject.c,87 :: 		ticka = 0;
 	CLRF       _ticka+0
-;BicycleSafetySystem.c,88 :: 		PORTB ^= 0x04;   // Toggle RB2
+;BicycleSafetyProject.c,88 :: 		PORTB ^= 0x04;   // Toggle RB2
 	MOVLW      4
 	XORWF      PORTB+0, 1
-;BicycleSafetySystem.c,89 :: 		}
+;BicycleSafetyProject.c,89 :: 		}
 L_interrupt10:
-;BicycleSafetySystem.c,90 :: 		if (tick1 == 150) {  // Stop right turn signal after ~5 seconds
+;BicycleSafetyProject.c,90 :: 		if (tick1 == 150) {  // Stop right turn signal after ~5 seconds
 	MOVF       _tick1+0, 0
 	XORLW      150
 	BTFSS      STATUS+0, 2
 	GOTO       L_interrupt11
-;BicycleSafetySystem.c,91 :: 		tick1 = 0;
+;BicycleSafetyProject.c,91 :: 		tick1 = 0;
 	CLRF       _tick1+0
-;BicycleSafetySystem.c,92 :: 		rturn = 0;
+;BicycleSafetyProject.c,92 :: 		rturn = 0;
 	CLRF       _rturn+0
-;BicycleSafetySystem.c,93 :: 		PORTB &= 0xFB;   // Turn off RB2
+;BicycleSafetyProject.c,93 :: 		PORTB &= 0xFB;   // Turn off RB2
 	MOVLW      251
 	ANDWF      PORTB+0, 1
-;BicycleSafetySystem.c,94 :: 		}
+;BicycleSafetyProject.c,94 :: 		}
 L_interrupt11:
-;BicycleSafetySystem.c,95 :: 		}
+;BicycleSafetyProject.c,95 :: 		}
 L_interrupt9:
-;BicycleSafetySystem.c,98 :: 		if (lturn == 1) {
+;BicycleSafetyProject.c,98 :: 		if (lturn == 1) {
 	MOVF       _lturn+0, 0
 	XORLW      1
 	BTFSS      STATUS+0, 2
 	GOTO       L_interrupt12
-;BicycleSafetySystem.c,99 :: 		tick2++;             // Increment left turn duration counter
+;BicycleSafetyProject.c,99 :: 		tick2++;             // Increment left turn duration counter
 	INCF       _tick2+0, 1
-;BicycleSafetySystem.c,100 :: 		tickb++;             // Increment left turn blinking interval counter
+;BicycleSafetyProject.c,100 :: 		tickb++;             // Increment left turn blinking interval counter
 	INCF       _tickb+0, 1
-;BicycleSafetySystem.c,102 :: 		if (tickb == 15) {   // Toggle RB3 (left turn signal) every ~480ms
+;BicycleSafetyProject.c,102 :: 		if (tickb == 15) {   // Toggle RB3 (left turn signal) every ~480ms
 	MOVF       _tickb+0, 0
 	XORLW      15
 	BTFSS      STATUS+0, 2
 	GOTO       L_interrupt13
-;BicycleSafetySystem.c,103 :: 		tickb = 0;
+;BicycleSafetyProject.c,103 :: 		tickb = 0;
 	CLRF       _tickb+0
-;BicycleSafetySystem.c,104 :: 		PORTB ^= 0x08;   // Toggle RB3
+;BicycleSafetyProject.c,104 :: 		PORTB ^= 0x08;   // Toggle RB3
 	MOVLW      8
 	XORWF      PORTB+0, 1
-;BicycleSafetySystem.c,105 :: 		}
+;BicycleSafetyProject.c,105 :: 		}
 L_interrupt13:
-;BicycleSafetySystem.c,106 :: 		if (tick2 == 150) {  // Stop left turn signal after ~5 seconds
+;BicycleSafetyProject.c,106 :: 		if (tick2 == 150) {  // Stop left turn signal after ~5 seconds
 	MOVF       _tick2+0, 0
 	XORLW      150
 	BTFSS      STATUS+0, 2
 	GOTO       L_interrupt14
-;BicycleSafetySystem.c,107 :: 		tick2 = 0;
+;BicycleSafetyProject.c,107 :: 		tick2 = 0;
 	CLRF       _tick2+0
-;BicycleSafetySystem.c,108 :: 		lturn = 0;
+;BicycleSafetyProject.c,108 :: 		lturn = 0;
 	CLRF       _lturn+0
-;BicycleSafetySystem.c,109 :: 		PORTB &= 0xF7;   // Turn off RB3
+;BicycleSafetyProject.c,109 :: 		PORTB &= 0xF7;   // Turn off RB3
 	MOVLW      247
 	ANDWF      PORTB+0, 1
-;BicycleSafetySystem.c,110 :: 		}
+;BicycleSafetyProject.c,110 :: 		}
 L_interrupt14:
-;BicycleSafetySystem.c,111 :: 		}
+;BicycleSafetyProject.c,111 :: 		}
 L_interrupt12:
-;BicycleSafetySystem.c,114 :: 		if (tick3 == 7) {
+;BicycleSafetyProject.c,114 :: 		if (tick3 == 7) {
 	MOVF       _tick3+0, 0
 	XORLW      7
 	BTFSS      STATUS+0, 2
 	GOTO       L_interrupt15
-;BicycleSafetySystem.c,115 :: 		tick3 = 0;
+;BicycleSafetyProject.c,115 :: 		tick3 = 0;
 	CLRF       _tick3+0
-;BicycleSafetySystem.c,118 :: 		hallA2 = ATD_read2();
+;BicycleSafetyProject.c,118 :: 		hallA2 = ATD_read2();
 	CALL       _ATD_read2+0
 	MOVF       R0+0, 0
 	MOVWF      _hallA2+0
 	MOVF       R0+1, 0
 	MOVWF      _hallA2+1
-;BicycleSafetySystem.c,119 :: 		hallD2 = (unsigned int)(hallA2 * 50) / 1023;
+;BicycleSafetyProject.c,119 :: 		hallD2 = (unsigned int)(hallA2 * 50) / 1023;
 	MOVLW      50
 	MOVWF      R4+0
 	MOVLW      0
@@ -232,7 +232,7 @@ L_interrupt12:
 	MOVWF      _hallD2+0
 	MOVF       R0+1, 0
 	MOVWF      _hallD2+1
-;BicycleSafetySystem.c,122 :: 		if (hallD2 > 10) {
+;BicycleSafetyProject.c,122 :: 		if (hallD2 > 10) {
 	MOVF       R0+1, 0
 	SUBLW      0
 	BTFSS      STATUS+0, 2
@@ -242,22 +242,22 @@ L_interrupt12:
 L__interrupt54:
 	BTFSC      STATUS+0, 0
 	GOTO       L_interrupt16
-;BicycleSafetySystem.c,123 :: 		pulse++;
+;BicycleSafetyProject.c,123 :: 		pulse++;
 	INCF       _pulse+0, 1
 	BTFSC      STATUS+0, 2
 	INCF       _pulse+1, 1
-;BicycleSafetySystem.c,124 :: 		}
+;BicycleSafetyProject.c,124 :: 		}
 L_interrupt16:
-;BicycleSafetySystem.c,125 :: 		}
+;BicycleSafetyProject.c,125 :: 		}
 L_interrupt15:
-;BicycleSafetySystem.c,128 :: 		if (tick4 == 219) {
+;BicycleSafetyProject.c,128 :: 		if (tick4 == 219) {
 	MOVF       _tick4+0, 0
 	XORLW      219
 	BTFSS      STATUS+0, 2
 	GOTO       L_interrupt17
-;BicycleSafetySystem.c,129 :: 		tick4 = 0;
+;BicycleSafetyProject.c,129 :: 		tick4 = 0;
 	CLRF       _tick4+0
-;BicycleSafetySystem.c,132 :: 		dis = (unsigned long)(314 * 35 * pulse) / 2;
+;BicycleSafetyProject.c,132 :: 		dis = (unsigned long)(314 * 35 * pulse) / 2;
 	MOVLW      238
 	MOVWF      R0+0
 	MOVLW      42
@@ -294,7 +294,7 @@ L_interrupt15:
 	MOVWF      _dis+2
 	MOVF       R0+3, 0
 	MOVWF      _dis+3
-;BicycleSafetySystem.c,135 :: 		v = (unsigned long) dis / 700;
+;BicycleSafetyProject.c,135 :: 		v = (unsigned long) dis / 700;
 	MOVLW      188
 	MOVWF      R4+0
 	MOVLW      2
@@ -310,46 +310,46 @@ L_interrupt15:
 	MOVWF      _v+2
 	MOVF       R0+3, 0
 	MOVWF      _v+3
-;BicycleSafetySystem.c,138 :: 		pulse = 0;
+;BicycleSafetyProject.c,138 :: 		pulse = 0;
 	CLRF       _pulse+0
 	CLRF       _pulse+1
-;BicycleSafetySystem.c,139 :: 		}
+;BicycleSafetyProject.c,139 :: 		}
 L_interrupt17:
-;BicycleSafetySystem.c,142 :: 		if (tick5 == 7) {
+;BicycleSafetyProject.c,142 :: 		if (tick5 == 7) {
 	MOVF       _tick5+0, 0
 	XORLW      7
 	BTFSS      STATUS+0, 2
 	GOTO       L_interrupt18
-;BicycleSafetySystem.c,143 :: 		tick5 = 0;
+;BicycleSafetyProject.c,143 :: 		tick5 = 0;
 	CLRF       _tick5+0
-;BicycleSafetySystem.c,144 :: 		sonar_read1();
+;BicycleSafetyProject.c,144 :: 		sonar_read1();
 	CALL       _sonar_read1+0
-;BicycleSafetySystem.c,145 :: 		sonar_read2();
+;BicycleSafetyProject.c,145 :: 		sonar_read2();
 	CALL       _sonar_read2+0
-;BicycleSafetySystem.c,146 :: 		}
+;BicycleSafetyProject.c,146 :: 		}
 L_interrupt18:
-;BicycleSafetySystem.c,148 :: 		INTCON &= 0xFB;           // Clear Timer0 Interrupt flag
+;BicycleSafetyProject.c,148 :: 		INTCON &= 0xFB;           // Clear Timer0 Interrupt flag
 	MOVLW      251
 	ANDWF      INTCON+0, 1
-;BicycleSafetySystem.c,149 :: 		}
+;BicycleSafetyProject.c,149 :: 		}
 L_interrupt3:
-;BicycleSafetySystem.c,151 :: 		if (PIR1 & 0x01) {            // Timer1 Overflow Interrupt
+;BicycleSafetyProject.c,151 :: 		if (PIR1 & 0x01) {            // Timer1 Overflow Interrupt
 	BTFSS      PIR1+0, 0
 	GOTO       L_interrupt19
-;BicycleSafetySystem.c,152 :: 		T1overflow++;
+;BicycleSafetyProject.c,152 :: 		T1overflow++;
 	INCF       _T1overflow+0, 1
 	BTFSC      STATUS+0, 2
 	INCF       _T1overflow+1, 1
-;BicycleSafetySystem.c,153 :: 		T2overflow++;
+;BicycleSafetyProject.c,153 :: 		T2overflow++;
 	INCF       _T2overflow+0, 1
 	BTFSC      STATUS+0, 2
 	INCF       _T2overflow+1, 1
-;BicycleSafetySystem.c,154 :: 		PIR1 &= 0xFE;             // Clear Timer1 Overflow Interrupt flag
+;BicycleSafetyProject.c,154 :: 		PIR1 &= 0xFE;             // Clear Timer1 Overflow Interrupt flag
 	MOVLW      254
 	ANDWF      PIR1+0, 1
-;BicycleSafetySystem.c,155 :: 		}
+;BicycleSafetyProject.c,155 :: 		}
 L_interrupt19:
-;BicycleSafetySystem.c,156 :: 		}
+;BicycleSafetyProject.c,156 :: 		}
 L_end_interrupt:
 L__interrupt51:
 	MOVF       ___savePCLATH+0, 0
@@ -363,30 +363,30 @@ L__interrupt51:
 
 _main:
 
-;BicycleSafetySystem.c,159 :: 		void main() {
-;BicycleSafetySystem.c,161 :: 		TRISB = 0x71;                // RB1, RB2, RB3, RB7 as outputs; RB0, RB4, RB5, RB6 as inputs
+;BicycleSafetyProject.c,159 :: 		void main() {
+;BicycleSafetyProject.c,161 :: 		TRISB = 0x71;                // RB1, RB2, RB3, RB7 as outputs; RB0, RB4, RB5, RB6 as inputs
 	MOVLW      113
 	MOVWF      TRISB+0
-;BicycleSafetySystem.c,162 :: 		PORTB = 0x00;                // Initialize PORTB to LOW
+;BicycleSafetyProject.c,162 :: 		PORTB = 0x00;                // Initialize PORTB to LOW
 	CLRF       PORTB+0
-;BicycleSafetySystem.c,163 :: 		TRISC = 0x40;                // Configure RC6 as input
+;BicycleSafetyProject.c,163 :: 		TRISC = 0x40;                // Configure RC6 as input
 	MOVLW      64
 	MOVWF      TRISC+0
-;BicycleSafetySystem.c,164 :: 		PORTC = 0x00;                // Initialize PORTC to LOW
+;BicycleSafetyProject.c,164 :: 		PORTC = 0x00;                // Initialize PORTC to LOW
 	CLRF       PORTC+0
-;BicycleSafetySystem.c,167 :: 		ATD_init();
+;BicycleSafetyProject.c,167 :: 		ATD_init();
 	CALL       _ATD_init+0
-;BicycleSafetySystem.c,168 :: 		sonar_init();                // Initialize ultrasonic sensor
+;BicycleSafetyProject.c,168 :: 		sonar_init();                // Initialize ultrasonic sensor
 	CALL       _sonar_init+0
-;BicycleSafetySystem.c,171 :: 		OPTION_REG = 0x07;           // Oscillator clock/4, prescaler of 256
+;BicycleSafetyProject.c,171 :: 		OPTION_REG = 0x07;           // Oscillator clock/4, prescaler of 256
 	MOVLW      7
 	MOVWF      OPTION_REG+0
-;BicycleSafetySystem.c,172 :: 		INTCON = 0xF8;               // Enable all interrupts
+;BicycleSafetyProject.c,172 :: 		INTCON = 0xF8;               // Enable all interrupts
 	MOVLW      248
 	MOVWF      INTCON+0
-;BicycleSafetySystem.c,173 :: 		TMR0 = 0;                    // Reset Timer0
+;BicycleSafetyProject.c,173 :: 		TMR0 = 0;                    // Reset Timer0
 	CLRF       TMR0+0
-;BicycleSafetySystem.c,176 :: 		tick = tick1 = tick2 = tick3 = tick4 = ticka = tickb = pulse = 0;
+;BicycleSafetyProject.c,176 :: 		tick = tick1 = tick2 = tick3 = tick4 = ticka = tickb = pulse = 0;
 	CLRF       _pulse+0
 	CLRF       _pulse+1
 	CLRF       _tickb+0
@@ -396,9 +396,9 @@ _main:
 	CLRF       _tick2+0
 	CLRF       _tick1+0
 	CLRF       _tick+0
-;BicycleSafetySystem.c,179 :: 		while (1) {
+;BicycleSafetyProject.c,179 :: 		while (1) {
 L_main20:
-;BicycleSafetySystem.c,180 :: 		if (D1 < 20) {
+;BicycleSafetyProject.c,180 :: 		if (D1 < 20) {
 	MOVLW      0
 	SUBWF      _D1+3, 0
 	BTFSS      STATUS+0, 2
@@ -416,18 +416,18 @@ L_main20:
 L__main56:
 	BTFSC      STATUS+0, 0
 	GOTO       L_main22
-;BicycleSafetySystem.c,181 :: 		PORTC |= 0x0C;        // Turn on RC2 and RC3
+;BicycleSafetyProject.c,181 :: 		PORTC |= 0x0C;        // Turn on RC2 and RC3
 	MOVLW      12
 	IORWF      PORTC+0, 1
-;BicycleSafetySystem.c,182 :: 		} else {
+;BicycleSafetyProject.c,182 :: 		} else {
 	GOTO       L_main23
 L_main22:
-;BicycleSafetySystem.c,183 :: 		PORTC &= 0xF3;        // Turn off RC2 and RC3
+;BicycleSafetyProject.c,183 :: 		PORTC &= 0xF3;        // Turn off RC2 and RC3
 	MOVLW      243
 	ANDWF      PORTC+0, 1
-;BicycleSafetySystem.c,184 :: 		}
+;BicycleSafetyProject.c,184 :: 		}
 L_main23:
-;BicycleSafetySystem.c,186 :: 		if (D2 < 20) {
+;BicycleSafetyProject.c,186 :: 		if (D2 < 20) {
 	MOVLW      0
 	SUBWF      _D2+3, 0
 	BTFSS      STATUS+0, 2
@@ -445,65 +445,65 @@ L_main23:
 L__main57:
 	BTFSC      STATUS+0, 0
 	GOTO       L_main24
-;BicycleSafetySystem.c,187 :: 		PORTC |= 0x30;
+;BicycleSafetyProject.c,187 :: 		PORTC |= 0x30;
 	MOVLW      48
 	IORWF      PORTC+0, 1
-;BicycleSafetySystem.c,188 :: 		} else {
+;BicycleSafetyProject.c,188 :: 		} else {
 	GOTO       L_main25
 L_main24:
-;BicycleSafetySystem.c,189 :: 		PORTC &= 0xCF;
+;BicycleSafetyProject.c,189 :: 		PORTC &= 0xCF;
 	MOVLW      207
 	ANDWF      PORTC+0, 1
-;BicycleSafetySystem.c,190 :: 		}
+;BicycleSafetyProject.c,190 :: 		}
 L_main25:
-;BicycleSafetySystem.c,191 :: 		}
+;BicycleSafetyProject.c,191 :: 		}
 	GOTO       L_main20
-;BicycleSafetySystem.c,192 :: 		}
+;BicycleSafetyProject.c,192 :: 		}
 L_end_main:
 	GOTO       $+0
 ; end of _main
 
 _ATD_init:
 
-;BicycleSafetySystem.c,195 :: 		void ATD_init(void) {
-;BicycleSafetySystem.c,196 :: 		ADCON0 = 0x41;             // ADC ON, Don't GO, Channel 0, Fosc/16
+;BicycleSafetyProject.c,195 :: 		void ATD_init(void) {
+;BicycleSafetyProject.c,196 :: 		ADCON0 = 0x41;             // ADC ON, Don't GO, Channel 0, Fosc/16
 	MOVLW      65
 	MOVWF      ADCON0+0
-;BicycleSafetySystem.c,197 :: 		ADCON1 = 0xC0;             // All analog channels, 500 KHz, right justified
+;BicycleSafetyProject.c,197 :: 		ADCON1 = 0xC0;             // All analog channels, 500 KHz, right justified
 	MOVLW      192
 	MOVWF      ADCON1+0
-;BicycleSafetySystem.c,198 :: 		TRISA = 0xFF;              // Configure PORTA as input
+;BicycleSafetyProject.c,198 :: 		TRISA = 0xFF;              // Configure PORTA as input
 	MOVLW      255
 	MOVWF      TRISA+0
-;BicycleSafetySystem.c,199 :: 		TRISE = 0x07;              // Configure PORTE as input
+;BicycleSafetyProject.c,199 :: 		TRISE = 0x07;              // Configure PORTE as input
 	MOVLW      7
 	MOVWF      TRISE+0
-;BicycleSafetySystem.c,200 :: 		}
+;BicycleSafetyProject.c,200 :: 		}
 L_end_ATD_init:
 	RETURN
 ; end of _ATD_init
 
 _ATD_read0:
 
-;BicycleSafetySystem.c,203 :: 		unsigned int ATD_read0(void) {
-;BicycleSafetySystem.c,204 :: 		ADCON0 &= 0xC7;            // Select channel 0
+;BicycleSafetyProject.c,203 :: 		unsigned int ATD_read0(void) {
+;BicycleSafetyProject.c,204 :: 		ADCON0 &= 0xC7;            // Select channel 0
 	MOVLW      199
 	ANDWF      ADCON0+0, 1
-;BicycleSafetySystem.c,205 :: 		usDelay(10);               // Stabilize ADC input
+;BicycleSafetyProject.c,205 :: 		usDelay(10);               // Stabilize ADC input
 	MOVLW      10
 	MOVWF      FARG_usDelay+0
 	MOVLW      0
 	MOVWF      FARG_usDelay+1
 	CALL       _usDelay+0
-;BicycleSafetySystem.c,206 :: 		ADCON0 |= 0x04;            // Start ADC conversion
+;BicycleSafetyProject.c,206 :: 		ADCON0 |= 0x04;            // Start ADC conversion
 	BSF        ADCON0+0, 2
-;BicycleSafetySystem.c,207 :: 		while (ADCON0 & 0x04);     // Wait for conversion to complete
+;BicycleSafetyProject.c,207 :: 		while (ADCON0 & 0x04);     // Wait for conversion to complete
 L_ATD_read026:
 	BTFSS      ADCON0+0, 2
 	GOTO       L_ATD_read027
 	GOTO       L_ATD_read026
 L_ATD_read027:
-;BicycleSafetySystem.c,208 :: 		return ((ADRESH << 8) | ADRESL);
+;BicycleSafetyProject.c,208 :: 		return ((ADRESH << 8) | ADRESL);
 	MOVF       ADRESH+0, 0
 	MOVWF      R0+1
 	CLRF       R0+0
@@ -511,36 +511,36 @@ L_ATD_read027:
 	IORWF      R0+0, 1
 	MOVLW      0
 	IORWF      R0+1, 1
-;BicycleSafetySystem.c,209 :: 		}
+;BicycleSafetyProject.c,209 :: 		}
 L_end_ATD_read0:
 	RETURN
 ; end of _ATD_read0
 
 _ATD_read1:
 
-;BicycleSafetySystem.c,212 :: 		unsigned int ATD_read1(void) {
-;BicycleSafetySystem.c,213 :: 		ADCON0 = (ADCON0 & 0xCF) | 0x08;  // Select channel 1
+;BicycleSafetyProject.c,212 :: 		unsigned int ATD_read1(void) {
+;BicycleSafetyProject.c,213 :: 		ADCON0 = (ADCON0 & 0xCF) | 0x08;  // Select channel 1
 	MOVLW      207
 	ANDWF      ADCON0+0, 0
 	MOVWF      R0+0
 	MOVLW      8
 	IORWF      R0+0, 0
 	MOVWF      ADCON0+0
-;BicycleSafetySystem.c,214 :: 		usDelay(10);                      // Stabilize ADC input
+;BicycleSafetyProject.c,214 :: 		usDelay(10);                      // Stabilize ADC input
 	MOVLW      10
 	MOVWF      FARG_usDelay+0
 	MOVLW      0
 	MOVWF      FARG_usDelay+1
 	CALL       _usDelay+0
-;BicycleSafetySystem.c,215 :: 		ADCON0 |= 0x04;                   // Start ADC conversion
+;BicycleSafetyProject.c,215 :: 		ADCON0 |= 0x04;                   // Start ADC conversion
 	BSF        ADCON0+0, 2
-;BicycleSafetySystem.c,216 :: 		while (ADCON0 & 0x04);            // Wait for conversion to complete
+;BicycleSafetyProject.c,216 :: 		while (ADCON0 & 0x04);            // Wait for conversion to complete
 L_ATD_read128:
 	BTFSS      ADCON0+0, 2
 	GOTO       L_ATD_read129
 	GOTO       L_ATD_read128
 L_ATD_read129:
-;BicycleSafetySystem.c,217 :: 		return ((ADRESH << 8) | ADRESL);
+;BicycleSafetyProject.c,217 :: 		return ((ADRESH << 8) | ADRESL);
 	MOVF       ADRESH+0, 0
 	MOVWF      R0+1
 	CLRF       R0+0
@@ -548,36 +548,36 @@ L_ATD_read129:
 	IORWF      R0+0, 1
 	MOVLW      0
 	IORWF      R0+1, 1
-;BicycleSafetySystem.c,218 :: 		}
+;BicycleSafetyProject.c,218 :: 		}
 L_end_ATD_read1:
 	RETURN
 ; end of _ATD_read1
 
 _ATD_read2:
 
-;BicycleSafetySystem.c,221 :: 		unsigned int ATD_read2(void) {
-;BicycleSafetySystem.c,222 :: 		ADCON0 = (ADCON0 & 0xD7) | 0x10;  // Select channel 2
+;BicycleSafetyProject.c,221 :: 		unsigned int ATD_read2(void) {
+;BicycleSafetyProject.c,222 :: 		ADCON0 = (ADCON0 & 0xD7) | 0x10;  // Select channel 2
 	MOVLW      215
 	ANDWF      ADCON0+0, 0
 	MOVWF      R0+0
 	MOVLW      16
 	IORWF      R0+0, 0
 	MOVWF      ADCON0+0
-;BicycleSafetySystem.c,223 :: 		usDelay(10);                      // Stabilize ADC input
+;BicycleSafetyProject.c,223 :: 		usDelay(10);                      // Stabilize ADC input
 	MOVLW      10
 	MOVWF      FARG_usDelay+0
 	MOVLW      0
 	MOVWF      FARG_usDelay+1
 	CALL       _usDelay+0
-;BicycleSafetySystem.c,224 :: 		ADCON0 |= 0x04;                   // Start ADC conversion
+;BicycleSafetyProject.c,224 :: 		ADCON0 |= 0x04;                   // Start ADC conversion
 	BSF        ADCON0+0, 2
-;BicycleSafetySystem.c,225 :: 		while (ADCON0 & 0x04);            // Wait for conversion to complete
+;BicycleSafetyProject.c,225 :: 		while (ADCON0 & 0x04);            // Wait for conversion to complete
 L_ATD_read230:
 	BTFSS      ADCON0+0, 2
 	GOTO       L_ATD_read231
 	GOTO       L_ATD_read230
 L_ATD_read231:
-;BicycleSafetySystem.c,226 :: 		return ((ADRESH << 8) | ADRESL);
+;BicycleSafetyProject.c,226 :: 		return ((ADRESH << 8) | ADRESL);
 	MOVF       ADRESH+0, 0
 	MOVWF      R0+1
 	CLRF       R0+0
@@ -585,104 +585,104 @@ L_ATD_read231:
 	IORWF      R0+0, 1
 	MOVLW      0
 	IORWF      R0+1, 1
-;BicycleSafetySystem.c,227 :: 		}
+;BicycleSafetyProject.c,227 :: 		}
 L_end_ATD_read2:
 	RETURN
 ; end of _ATD_read2
 
 _sonar_init:
 
-;BicycleSafetySystem.c,230 :: 		void sonar_init(void) {
-;BicycleSafetySystem.c,231 :: 		T1overflow = 0;
+;BicycleSafetyProject.c,230 :: 		void sonar_init(void) {
+;BicycleSafetyProject.c,231 :: 		T1overflow = 0;
 	CLRF       _T1overflow+0
 	CLRF       _T1overflow+1
-;BicycleSafetySystem.c,232 :: 		T1counts = 0;
+;BicycleSafetyProject.c,232 :: 		T1counts = 0;
 	CLRF       _T1counts+0
 	CLRF       _T1counts+1
 	CLRF       _T1counts+2
 	CLRF       _T1counts+3
-;BicycleSafetySystem.c,233 :: 		T1time = 0;
+;BicycleSafetyProject.c,233 :: 		T1time = 0;
 	CLRF       _T1time+0
 	CLRF       _T1time+1
 	CLRF       _T1time+2
 	CLRF       _T1time+3
-;BicycleSafetySystem.c,234 :: 		T2overflow = 0;
+;BicycleSafetyProject.c,234 :: 		T2overflow = 0;
 	CLRF       _T2overflow+0
 	CLRF       _T2overflow+1
-;BicycleSafetySystem.c,235 :: 		T2counts = 0;
+;BicycleSafetyProject.c,235 :: 		T2counts = 0;
 	CLRF       _T2counts+0
 	CLRF       _T2counts+1
 	CLRF       _T2counts+2
 	CLRF       _T2counts+3
-;BicycleSafetySystem.c,236 :: 		T2time = 0;
+;BicycleSafetyProject.c,236 :: 		T2time = 0;
 	CLRF       _T2time+0
 	CLRF       _T2time+1
 	CLRF       _T2time+2
 	CLRF       _T2time+3
-;BicycleSafetySystem.c,237 :: 		D1 = 0;
+;BicycleSafetyProject.c,237 :: 		D1 = 0;
 	CLRF       _D1+0
 	CLRF       _D1+1
 	CLRF       _D1+2
 	CLRF       _D1+3
-;BicycleSafetySystem.c,238 :: 		D2 = 0;
+;BicycleSafetyProject.c,238 :: 		D2 = 0;
 	CLRF       _D2+0
 	CLRF       _D2+1
 	CLRF       _D2+2
 	CLRF       _D2+3
-;BicycleSafetySystem.c,239 :: 		TMR1H = 0;
+;BicycleSafetyProject.c,239 :: 		TMR1H = 0;
 	CLRF       TMR1H+0
-;BicycleSafetySystem.c,240 :: 		TMR1L = 0;
+;BicycleSafetyProject.c,240 :: 		TMR1L = 0;
 	CLRF       TMR1L+0
-;BicycleSafetySystem.c,241 :: 		PIE1 = PIE1 | 0x01;               // Enable TMR1 Overflow interrupt
+;BicycleSafetyProject.c,241 :: 		PIE1 = PIE1 | 0x01;               // Enable TMR1 Overflow interrupt
 	BSF        PIE1+0, 0
-;BicycleSafetySystem.c,242 :: 		T1CON = 0x18;                     // TMR1 OFF, Fosc/4 (inc 1uS) with 1:2 prescaler
+;BicycleSafetyProject.c,242 :: 		T1CON = 0x18;                     // TMR1 OFF, Fosc/4 (inc 1uS) with 1:2 prescaler
 	MOVLW      24
 	MOVWF      T1CON+0
-;BicycleSafetySystem.c,243 :: 		}
+;BicycleSafetyProject.c,243 :: 		}
 L_end_sonar_init:
 	RETURN
 ; end of _sonar_init
 
 _sonar_read1:
 
-;BicycleSafetySystem.c,246 :: 		void sonar_read1(void) {
-;BicycleSafetySystem.c,247 :: 		T1overflow = 0;
+;BicycleSafetyProject.c,246 :: 		void sonar_read1(void) {
+;BicycleSafetyProject.c,247 :: 		T1overflow = 0;
 	CLRF       _T1overflow+0
 	CLRF       _T1overflow+1
-;BicycleSafetySystem.c,248 :: 		TMR1H = 0;
+;BicycleSafetyProject.c,248 :: 		TMR1H = 0;
 	CLRF       TMR1H+0
-;BicycleSafetySystem.c,249 :: 		TMR1L = 0;
+;BicycleSafetyProject.c,249 :: 		TMR1L = 0;
 	CLRF       TMR1L+0
-;BicycleSafetySystem.c,251 :: 		PORTB |= 0x80;                    // Trigger the ultrasonic sensor (RB7 connected to trigger)
+;BicycleSafetyProject.c,251 :: 		PORTB |= 0x80;                    // Trigger the ultrasonic sensor (RB7 connected to trigger)
 	BSF        PORTB+0, 7
-;BicycleSafetySystem.c,252 :: 		usDelay(10);                      // Keep trigger for 10uS
+;BicycleSafetyProject.c,252 :: 		usDelay(10);                      // Keep trigger for 10uS
 	MOVLW      10
 	MOVWF      FARG_usDelay+0
 	MOVLW      0
 	MOVWF      FARG_usDelay+1
 	CALL       _usDelay+0
-;BicycleSafetySystem.c,253 :: 		PORTB &= 0x7F;                    // Remove trigger
+;BicycleSafetyProject.c,253 :: 		PORTB &= 0x7F;                    // Remove trigger
 	MOVLW      127
 	ANDWF      PORTB+0, 1
-;BicycleSafetySystem.c,255 :: 		while (!(PORTB & 0x40));          // Wait until you start receiving the echo
+;BicycleSafetyProject.c,255 :: 		while (!(PORTB & 0x40));          // Wait until you start receiving the echo
 L_sonar_read132:
 	BTFSC      PORTB+0, 6
 	GOTO       L_sonar_read133
 	GOTO       L_sonar_read132
 L_sonar_read133:
-;BicycleSafetySystem.c,256 :: 		T1CON = 0x19;                     // TMR1 ON, Fosc/4 (inc 1uS) with 1:2 prescaler
+;BicycleSafetyProject.c,256 :: 		T1CON = 0x19;                     // TMR1 ON, Fosc/4 (inc 1uS) with 1:2 prescaler
 	MOVLW      25
 	MOVWF      T1CON+0
-;BicycleSafetySystem.c,257 :: 		while (PORTB & 0x40);             // Wait until the pulse is received
+;BicycleSafetyProject.c,257 :: 		while (PORTB & 0x40);             // Wait until the pulse is received
 L_sonar_read134:
 	BTFSS      PORTB+0, 6
 	GOTO       L_sonar_read135
 	GOTO       L_sonar_read134
 L_sonar_read135:
-;BicycleSafetySystem.c,258 :: 		T1CON = 0x18;                     // TMR1 OFF
+;BicycleSafetyProject.c,258 :: 		T1CON = 0x18;                     // TMR1 OFF
 	MOVLW      24
 	MOVWF      T1CON+0
-;BicycleSafetySystem.c,260 :: 		T1counts = ((TMR1H << 8) | TMR1L) + (T1overflow * 65536);
+;BicycleSafetyProject.c,260 :: 		T1counts = ((TMR1H << 8) | TMR1L) + (T1overflow * 65536);
 	MOVF       TMR1H+0, 0
 	MOVWF      R0+1
 	CLRF       R0+0
@@ -727,7 +727,7 @@ L_sonar_read135:
 	MOVWF      _T1counts+2
 	MOVF       R0+3, 0
 	MOVWF      _T1counts+3
-;BicycleSafetySystem.c,261 :: 		T1time = T1counts;                // Time in microseconds
+;BicycleSafetyProject.c,261 :: 		T1time = T1counts;                // Time in microseconds
 	MOVF       R0+0, 0
 	MOVWF      _T1time+0
 	MOVF       R0+1, 0
@@ -736,7 +736,7 @@ L_sonar_read135:
 	MOVWF      _T1time+2
 	MOVF       R0+3, 0
 	MOVWF      _T1time+3
-;BicycleSafetySystem.c,262 :: 		D1 = ((T1time * 34) / 1000) / 2;  // Calculate distance in cm
+;BicycleSafetyProject.c,262 :: 		D1 = ((T1time * 34) / 1000) / 2;  // Calculate distance in cm
 	MOVLW      34
 	MOVWF      R4+0
 	CLRF       R4+1
@@ -763,51 +763,51 @@ L_sonar_read135:
 	RRF        _D1+1, 1
 	RRF        _D1+0, 1
 	BCF        _D1+3, 7
-;BicycleSafetySystem.c,263 :: 		}
+;BicycleSafetyProject.c,263 :: 		}
 L_end_sonar_read1:
 	RETURN
 ; end of _sonar_read1
 
 _sonar_read2:
 
-;BicycleSafetySystem.c,265 :: 		void sonar_read2(void) {
-;BicycleSafetySystem.c,266 :: 		T2overflow = 0;
+;BicycleSafetyProject.c,265 :: 		void sonar_read2(void) {
+;BicycleSafetyProject.c,266 :: 		T2overflow = 0;
 	CLRF       _T2overflow+0
 	CLRF       _T2overflow+1
-;BicycleSafetySystem.c,267 :: 		TMR1H = 0;
+;BicycleSafetyProject.c,267 :: 		TMR1H = 0;
 	CLRF       TMR1H+0
-;BicycleSafetySystem.c,268 :: 		TMR1L = 0;
+;BicycleSafetyProject.c,268 :: 		TMR1L = 0;
 	CLRF       TMR1L+0
-;BicycleSafetySystem.c,270 :: 		PORTC |= 0x80;                    // Trigger the ultrasonic sensor (RC7 connected to trigger)
+;BicycleSafetyProject.c,270 :: 		PORTC |= 0x80;                    // Trigger the ultrasonic sensor (RC7 connected to trigger)
 	BSF        PORTC+0, 7
-;BicycleSafetySystem.c,271 :: 		usDelay(10);                      // Keep trigger for 10uS
+;BicycleSafetyProject.c,271 :: 		usDelay(10);                      // Keep trigger for 10uS
 	MOVLW      10
 	MOVWF      FARG_usDelay+0
 	MOVLW      0
 	MOVWF      FARG_usDelay+1
 	CALL       _usDelay+0
-;BicycleSafetySystem.c,272 :: 		PORTC &= 0x7F;                    // Remove trigger
+;BicycleSafetyProject.c,272 :: 		PORTC &= 0x7F;                    // Remove trigger
 	MOVLW      127
 	ANDWF      PORTC+0, 1
-;BicycleSafetySystem.c,274 :: 		while (!(PORTC & 0x40));          // Wait until you start receiving the echo
+;BicycleSafetyProject.c,274 :: 		while (!(PORTC & 0x40));          // Wait until you start receiving the echo
 L_sonar_read236:
 	BTFSC      PORTC+0, 6
 	GOTO       L_sonar_read237
 	GOTO       L_sonar_read236
 L_sonar_read237:
-;BicycleSafetySystem.c,275 :: 		T1CON = 0x19;                     // TMR1 ON, Fosc/4 (inc 1uS) with 1:2 prescaler
+;BicycleSafetyProject.c,275 :: 		T1CON = 0x19;                     // TMR1 ON, Fosc/4 (inc 1uS) with 1:2 prescaler
 	MOVLW      25
 	MOVWF      T1CON+0
-;BicycleSafetySystem.c,276 :: 		while (PORTC & 0x40);             // Wait until the pulse is received
+;BicycleSafetyProject.c,276 :: 		while (PORTC & 0x40);             // Wait until the pulse is received
 L_sonar_read238:
 	BTFSS      PORTC+0, 6
 	GOTO       L_sonar_read239
 	GOTO       L_sonar_read238
 L_sonar_read239:
-;BicycleSafetySystem.c,277 :: 		T1CON = 0x18;                     // TMR1 OFF
+;BicycleSafetyProject.c,277 :: 		T1CON = 0x18;                     // TMR1 OFF
 	MOVLW      24
 	MOVWF      T1CON+0
-;BicycleSafetySystem.c,279 :: 		T2counts = ((TMR1H << 8) | TMR1L) + (T2overflow * 65536);
+;BicycleSafetyProject.c,279 :: 		T2counts = ((TMR1H << 8) | TMR1L) + (T2overflow * 65536);
 	MOVF       TMR1H+0, 0
 	MOVWF      R0+1
 	CLRF       R0+0
@@ -852,7 +852,7 @@ L_sonar_read239:
 	MOVWF      _T2counts+2
 	MOVF       R0+3, 0
 	MOVWF      _T2counts+3
-;BicycleSafetySystem.c,280 :: 		T2time = T2counts;                // Time in microseconds
+;BicycleSafetyProject.c,280 :: 		T2time = T2counts;                // Time in microseconds
 	MOVF       R0+0, 0
 	MOVWF      _T2time+0
 	MOVF       R0+1, 0
@@ -861,7 +861,7 @@ L_sonar_read239:
 	MOVWF      _T2time+2
 	MOVF       R0+3, 0
 	MOVWF      _T2time+3
-;BicycleSafetySystem.c,281 :: 		D2 = ((T2time * 34) / 1000) / 2;  // Calculate distance in cm
+;BicycleSafetyProject.c,281 :: 		D2 = ((T2time * 34) / 1000) / 2;  // Calculate distance in cm
 	MOVLW      34
 	MOVWF      R4+0
 	CLRF       R4+1
@@ -888,15 +888,15 @@ L_sonar_read239:
 	RRF        _D2+1, 1
 	RRF        _D2+0, 1
 	BCF        _D2+3, 7
-;BicycleSafetySystem.c,282 :: 		}
+;BicycleSafetyProject.c,282 :: 		}
 L_end_sonar_read2:
 	RETURN
 ; end of _sonar_read2
 
 _usDelay:
 
-;BicycleSafetySystem.c,285 :: 		void usDelay(unsigned int usCnt) {
-;BicycleSafetySystem.c,287 :: 		for (us = 0; us < usCnt; us++) {
+;BicycleSafetyProject.c,285 :: 		void usDelay(unsigned int usCnt) {
+;BicycleSafetyProject.c,287 :: 		for (us = 0; us < usCnt; us++) {
 	CLRF       R1+0
 	CLRF       R1+1
 L_usDelay40:
@@ -909,26 +909,26 @@ L_usDelay40:
 L__usDelay66:
 	BTFSC      STATUS+0, 0
 	GOTO       L_usDelay41
-;BicycleSafetySystem.c,288 :: 		asm NOP; // 0.5 uS
+;BicycleSafetyProject.c,288 :: 		asm NOP; // 0.5 uS
 	NOP
-;BicycleSafetySystem.c,289 :: 		asm NOP; // 0.5 uS
+;BicycleSafetyProject.c,289 :: 		asm NOP; // 0.5 uS
 	NOP
-;BicycleSafetySystem.c,287 :: 		for (us = 0; us < usCnt; us++) {
+;BicycleSafetyProject.c,287 :: 		for (us = 0; us < usCnt; us++) {
 	INCF       R1+0, 1
 	BTFSC      STATUS+0, 2
 	INCF       R1+1, 1
-;BicycleSafetySystem.c,290 :: 		}
+;BicycleSafetyProject.c,290 :: 		}
 	GOTO       L_usDelay40
 L_usDelay41:
-;BicycleSafetySystem.c,291 :: 		}
+;BicycleSafetyProject.c,291 :: 		}
 L_end_usDelay:
 	RETURN
 ; end of _usDelay
 
 _msDelay:
 
-;BicycleSafetySystem.c,294 :: 		void msDelay(unsigned int msCnt) {
-;BicycleSafetySystem.c,296 :: 		for (ms = 0; ms < msCnt; ms++) {
+;BicycleSafetyProject.c,294 :: 		void msDelay(unsigned int msCnt) {
+;BicycleSafetyProject.c,296 :: 		for (ms = 0; ms < msCnt; ms++) {
 	CLRF       R1+0
 	CLRF       R1+1
 L_msDelay43:
@@ -941,7 +941,7 @@ L_msDelay43:
 L__msDelay68:
 	BTFSC      STATUS+0, 0
 	GOTO       L_msDelay44
-;BicycleSafetySystem.c,297 :: 		for (cc = 0; cc < 155; cc++);  // 1ms
+;BicycleSafetyProject.c,297 :: 		for (cc = 0; cc < 155; cc++);  // 1ms
 	CLRF       R3+0
 	CLRF       R3+1
 L_msDelay46:
@@ -959,14 +959,14 @@ L__msDelay69:
 	INCF       R3+1, 1
 	GOTO       L_msDelay46
 L_msDelay47:
-;BicycleSafetySystem.c,296 :: 		for (ms = 0; ms < msCnt; ms++) {
+;BicycleSafetyProject.c,296 :: 		for (ms = 0; ms < msCnt; ms++) {
 	INCF       R1+0, 1
 	BTFSC      STATUS+0, 2
 	INCF       R1+1, 1
-;BicycleSafetySystem.c,298 :: 		}
+;BicycleSafetyProject.c,298 :: 		}
 	GOTO       L_msDelay43
 L_msDelay44:
-;BicycleSafetySystem.c,299 :: 		}
+;BicycleSafetyProject.c,299 :: 		}
 L_end_msDelay:
 	RETURN
 ; end of _msDelay
