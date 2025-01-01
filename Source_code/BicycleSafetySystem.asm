@@ -101,23 +101,23 @@ L_interrupt0:
 	MOVF       _flexD0+1, 0
 	SUBLW      0
 	BTFSS      STATUS+0, 2
-	GOTO       L__interrupt53
+	GOTO       L__interrupt52
 	MOVF       _flexD0+0, 0
 	SUBLW      34
-L__interrupt53:
+L__interrupt52:
 	BTFSS      STATUS+0, 0
-	GOTO       L__interrupt50
+	GOTO       L__interrupt49
 	MOVF       _flexD1+1, 0
 	SUBLW      0
 	BTFSS      STATUS+0, 2
-	GOTO       L__interrupt54
+	GOTO       L__interrupt53
 	MOVF       _flexD1+0, 0
 	SUBLW      34
-L__interrupt54:
+L__interrupt53:
 	BTFSS      STATUS+0, 0
-	GOTO       L__interrupt50
+	GOTO       L__interrupt49
 	GOTO       L_interrupt7
-L__interrupt50:
+L__interrupt49:
 ;BicycleSafetySystem.c,75 :: 		PORTB |= 0x02;   // Turn on RB1
 	BSF        PORTB+0, 1
 ;BicycleSafetySystem.c,76 :: 		} else {
@@ -236,10 +236,10 @@ L_interrupt12:
 	MOVF       R0+1, 0
 	SUBLW      0
 	BTFSS      STATUS+0, 2
-	GOTO       L__interrupt55
+	GOTO       L__interrupt54
 	MOVF       R0+0, 0
 	SUBLW      10
-L__interrupt55:
+L__interrupt54:
 	BTFSC      STATUS+0, 0
 	GOTO       L_interrupt16
 ;BicycleSafetySystem.c,123 :: 		pulse++;
@@ -315,15 +315,17 @@ L_interrupt15:
 	CLRF       _pulse+1
 ;BicycleSafetySystem.c,139 :: 		}
 L_interrupt17:
-;BicycleSafetySystem.c,142 :: 		if (tick5 == 30) {
+;BicycleSafetySystem.c,142 :: 		if (tick5 == 7) {
 	MOVF       _tick5+0, 0
-	XORLW      30
+	XORLW      7
 	BTFSS      STATUS+0, 2
 	GOTO       L_interrupt18
 ;BicycleSafetySystem.c,143 :: 		tick5 = 0;
 	CLRF       _tick5+0
-;BicycleSafetySystem.c,144 :: 		sonar_read1();        // Trigger ultrasonic sensor 1 reading
+;BicycleSafetySystem.c,144 :: 		sonar_read1();
 	CALL       _sonar_read1+0
+;BicycleSafetySystem.c,145 :: 		sonar_read2();
+	CALL       _sonar_read2+0
 ;BicycleSafetySystem.c,146 :: 		}
 L_interrupt18:
 ;BicycleSafetySystem.c,148 :: 		INTCON &= 0xFB;           // Clear Timer0 Interrupt flag
@@ -349,7 +351,7 @@ L_interrupt3:
 L_interrupt19:
 ;BicycleSafetySystem.c,156 :: 		}
 L_end_interrupt:
-L__interrupt52:
+L__interrupt51:
 	MOVF       ___savePCLATH+0, 0
 	MOVWF      PCLATH+0
 	SWAPF      ___saveSTATUS+0, 0
@@ -396,22 +398,22 @@ _main:
 	CLRF       _tick+0
 ;BicycleSafetySystem.c,179 :: 		while (1) {
 L_main20:
-;BicycleSafetySystem.c,180 :: 		if (D1 < 10) {
+;BicycleSafetySystem.c,180 :: 		if (D1 < 20) {
 	MOVLW      0
 	SUBWF      _D1+3, 0
 	BTFSS      STATUS+0, 2
-	GOTO       L__main57
+	GOTO       L__main56
 	MOVLW      0
 	SUBWF      _D1+2, 0
 	BTFSS      STATUS+0, 2
-	GOTO       L__main57
+	GOTO       L__main56
 	MOVLW      0
 	SUBWF      _D1+1, 0
 	BTFSS      STATUS+0, 2
-	GOTO       L__main57
-	MOVLW      10
+	GOTO       L__main56
+	MOVLW      20
 	SUBWF      _D1+0, 0
-L__main57:
+L__main56:
 	BTFSC      STATUS+0, 0
 	GOTO       L_main22
 ;BicycleSafetySystem.c,181 :: 		PORTC |= 0x0C;        // Turn on RC2 and RC3
@@ -425,22 +427,22 @@ L_main22:
 	ANDWF      PORTC+0, 1
 ;BicycleSafetySystem.c,184 :: 		}
 L_main23:
-;BicycleSafetySystem.c,186 :: 		if (D2 < 10) {
+;BicycleSafetySystem.c,186 :: 		if (D2 < 20) {
 	MOVLW      0
 	SUBWF      _D2+3, 0
 	BTFSS      STATUS+0, 2
-	GOTO       L__main58
+	GOTO       L__main57
 	MOVLW      0
 	SUBWF      _D2+2, 0
 	BTFSS      STATUS+0, 2
-	GOTO       L__main58
+	GOTO       L__main57
 	MOVLW      0
 	SUBWF      _D2+1, 0
 	BTFSS      STATUS+0, 2
-	GOTO       L__main58
-	MOVLW      10
+	GOTO       L__main57
+	MOVLW      20
 	SUBWF      _D2+0, 0
-L__main58:
+L__main57:
 	BTFSC      STATUS+0, 0
 	GOTO       L_main24
 ;BicycleSafetySystem.c,187 :: 		PORTC |= 0x30;
@@ -487,21 +489,20 @@ _ATD_read0:
 ;BicycleSafetySystem.c,204 :: 		ADCON0 &= 0xC7;            // Select channel 0
 	MOVLW      199
 	ANDWF      ADCON0+0, 1
-;BicycleSafetySystem.c,205 :: 		delay_us(10);              // Stabilize ADC input
-	MOVLW      6
-	MOVWF      R13+0
-L_ATD_read026:
-	DECFSZ     R13+0, 1
-	GOTO       L_ATD_read026
-	NOP
+;BicycleSafetySystem.c,205 :: 		usDelay(10);               // Stabilize ADC input
+	MOVLW      10
+	MOVWF      FARG_usDelay+0
+	MOVLW      0
+	MOVWF      FARG_usDelay+1
+	CALL       _usDelay+0
 ;BicycleSafetySystem.c,206 :: 		ADCON0 |= 0x04;            // Start ADC conversion
 	BSF        ADCON0+0, 2
 ;BicycleSafetySystem.c,207 :: 		while (ADCON0 & 0x04);     // Wait for conversion to complete
-L_ATD_read027:
+L_ATD_read026:
 	BTFSS      ADCON0+0, 2
-	GOTO       L_ATD_read028
 	GOTO       L_ATD_read027
-L_ATD_read028:
+	GOTO       L_ATD_read026
+L_ATD_read027:
 ;BicycleSafetySystem.c,208 :: 		return ((ADRESH << 8) | ADRESL);
 	MOVF       ADRESH+0, 0
 	MOVWF      R0+1
@@ -534,11 +535,11 @@ _ATD_read1:
 ;BicycleSafetySystem.c,215 :: 		ADCON0 |= 0x04;                   // Start ADC conversion
 	BSF        ADCON0+0, 2
 ;BicycleSafetySystem.c,216 :: 		while (ADCON0 & 0x04);            // Wait for conversion to complete
-L_ATD_read129:
+L_ATD_read128:
 	BTFSS      ADCON0+0, 2
-	GOTO       L_ATD_read130
 	GOTO       L_ATD_read129
-L_ATD_read130:
+	GOTO       L_ATD_read128
+L_ATD_read129:
 ;BicycleSafetySystem.c,217 :: 		return ((ADRESH << 8) | ADRESL);
 	MOVF       ADRESH+0, 0
 	MOVWF      R0+1
@@ -571,11 +572,11 @@ _ATD_read2:
 ;BicycleSafetySystem.c,224 :: 		ADCON0 |= 0x04;                   // Start ADC conversion
 	BSF        ADCON0+0, 2
 ;BicycleSafetySystem.c,225 :: 		while (ADCON0 & 0x04);            // Wait for conversion to complete
-L_ATD_read231:
+L_ATD_read230:
 	BTFSS      ADCON0+0, 2
-	GOTO       L_ATD_read232
 	GOTO       L_ATD_read231
-L_ATD_read232:
+	GOTO       L_ATD_read230
+L_ATD_read231:
 ;BicycleSafetySystem.c,226 :: 		return ((ADRESH << 8) | ADRESL);
 	MOVF       ADRESH+0, 0
 	MOVWF      R0+1
@@ -664,20 +665,20 @@ _sonar_read1:
 	MOVLW      127
 	ANDWF      PORTB+0, 1
 ;BicycleSafetySystem.c,255 :: 		while (!(PORTB & 0x40));          // Wait until you start receiving the echo
-L_sonar_read133:
+L_sonar_read132:
 	BTFSC      PORTB+0, 6
-	GOTO       L_sonar_read134
 	GOTO       L_sonar_read133
-L_sonar_read134:
+	GOTO       L_sonar_read132
+L_sonar_read133:
 ;BicycleSafetySystem.c,256 :: 		T1CON = 0x19;                     // TMR1 ON, Fosc/4 (inc 1uS) with 1:2 prescaler
 	MOVLW      25
 	MOVWF      T1CON+0
 ;BicycleSafetySystem.c,257 :: 		while (PORTB & 0x40);             // Wait until the pulse is received
-L_sonar_read135:
+L_sonar_read134:
 	BTFSS      PORTB+0, 6
-	GOTO       L_sonar_read136
 	GOTO       L_sonar_read135
-L_sonar_read136:
+	GOTO       L_sonar_read134
+L_sonar_read135:
 ;BicycleSafetySystem.c,258 :: 		T1CON = 0x18;                     // TMR1 OFF
 	MOVLW      24
 	MOVWF      T1CON+0
@@ -789,24 +790,24 @@ _sonar_read2:
 	MOVLW      127
 	ANDWF      PORTC+0, 1
 ;BicycleSafetySystem.c,274 :: 		while (!(PORTC & 0x40));          // Wait until you start receiving the echo
-L_sonar_read237:
+L_sonar_read236:
 	BTFSC      PORTC+0, 6
-	GOTO       L_sonar_read238
 	GOTO       L_sonar_read237
-L_sonar_read238:
+	GOTO       L_sonar_read236
+L_sonar_read237:
 ;BicycleSafetySystem.c,275 :: 		T1CON = 0x19;                     // TMR1 ON, Fosc/4 (inc 1uS) with 1:2 prescaler
 	MOVLW      25
 	MOVWF      T1CON+0
 ;BicycleSafetySystem.c,276 :: 		while (PORTC & 0x40);             // Wait until the pulse is received
-L_sonar_read239:
+L_sonar_read238:
 	BTFSS      PORTC+0, 6
-	GOTO       L_sonar_read240
 	GOTO       L_sonar_read239
-L_sonar_read240:
+	GOTO       L_sonar_read238
+L_sonar_read239:
 ;BicycleSafetySystem.c,277 :: 		T1CON = 0x18;                     // TMR1 OFF
 	MOVLW      24
 	MOVWF      T1CON+0
-;BicycleSafetySystem.c,279 :: 		T2counts = ((TMR1H << 8) | TMR1L) + (T1overflow * 65536);
+;BicycleSafetySystem.c,279 :: 		T2counts = ((TMR1H << 8) | TMR1L) + (T2overflow * 65536);
 	MOVF       TMR1H+0, 0
 	MOVWF      R0+1
 	CLRF       R0+0
@@ -817,9 +818,9 @@ L_sonar_read240:
 	MOVWF      R8+1
 	MOVLW      0
 	IORWF      R8+1, 1
-	MOVF       _T1overflow+1, 0
+	MOVF       _T2overflow+1, 0
 	MOVWF      R4+3
-	MOVF       _T1overflow+0, 0
+	MOVF       _T2overflow+0, 0
 	MOVWF      R4+2
 	CLRF       R4+0
 	CLRF       R4+1
@@ -860,15 +861,7 @@ L_sonar_read240:
 	MOVWF      _T2time+2
 	MOVF       R0+3, 0
 	MOVWF      _T2time+3
-;BicycleSafetySystem.c,281 :: 		D2 = ((T1time * 34) / 1000) / 2;  // Calculate distance in cm
-	MOVF       _T1time+0, 0
-	MOVWF      R0+0
-	MOVF       _T1time+1, 0
-	MOVWF      R0+1
-	MOVF       _T1time+2, 0
-	MOVWF      R0+2
-	MOVF       _T1time+3, 0
-	MOVWF      R0+3
+;BicycleSafetySystem.c,281 :: 		D2 = ((T2time * 34) / 1000) / 2;  // Calculate distance in cm
 	MOVLW      34
 	MOVWF      R4+0
 	CLRF       R4+1
@@ -906,16 +899,16 @@ _usDelay:
 ;BicycleSafetySystem.c,287 :: 		for (us = 0; us < usCnt; us++) {
 	CLRF       R1+0
 	CLRF       R1+1
-L_usDelay41:
+L_usDelay40:
 	MOVF       FARG_usDelay_usCnt+1, 0
 	SUBWF      R1+1, 0
 	BTFSS      STATUS+0, 2
-	GOTO       L__usDelay67
+	GOTO       L__usDelay66
 	MOVF       FARG_usDelay_usCnt+0, 0
 	SUBWF      R1+0, 0
-L__usDelay67:
+L__usDelay66:
 	BTFSC      STATUS+0, 0
-	GOTO       L_usDelay42
+	GOTO       L_usDelay41
 ;BicycleSafetySystem.c,288 :: 		asm NOP; // 0.5 uS
 	NOP
 ;BicycleSafetySystem.c,289 :: 		asm NOP; // 0.5 uS
@@ -925,8 +918,8 @@ L__usDelay67:
 	BTFSC      STATUS+0, 2
 	INCF       R1+1, 1
 ;BicycleSafetySystem.c,290 :: 		}
-	GOTO       L_usDelay41
-L_usDelay42:
+	GOTO       L_usDelay40
+L_usDelay41:
 ;BicycleSafetySystem.c,291 :: 		}
 L_end_usDelay:
 	RETURN
@@ -938,41 +931,41 @@ _msDelay:
 ;BicycleSafetySystem.c,296 :: 		for (ms = 0; ms < msCnt; ms++) {
 	CLRF       R1+0
 	CLRF       R1+1
-L_msDelay44:
+L_msDelay43:
 	MOVF       FARG_msDelay_msCnt+1, 0
 	SUBWF      R1+1, 0
 	BTFSS      STATUS+0, 2
-	GOTO       L__msDelay69
+	GOTO       L__msDelay68
 	MOVF       FARG_msDelay_msCnt+0, 0
 	SUBWF      R1+0, 0
-L__msDelay69:
+L__msDelay68:
 	BTFSC      STATUS+0, 0
-	GOTO       L_msDelay45
+	GOTO       L_msDelay44
 ;BicycleSafetySystem.c,297 :: 		for (cc = 0; cc < 155; cc++);  // 1ms
 	CLRF       R3+0
 	CLRF       R3+1
-L_msDelay47:
+L_msDelay46:
 	MOVLW      0
 	SUBWF      R3+1, 0
 	BTFSS      STATUS+0, 2
-	GOTO       L__msDelay70
+	GOTO       L__msDelay69
 	MOVLW      155
 	SUBWF      R3+0, 0
-L__msDelay70:
+L__msDelay69:
 	BTFSC      STATUS+0, 0
-	GOTO       L_msDelay48
+	GOTO       L_msDelay47
 	INCF       R3+0, 1
 	BTFSC      STATUS+0, 2
 	INCF       R3+1, 1
-	GOTO       L_msDelay47
-L_msDelay48:
+	GOTO       L_msDelay46
+L_msDelay47:
 ;BicycleSafetySystem.c,296 :: 		for (ms = 0; ms < msCnt; ms++) {
 	INCF       R1+0, 1
 	BTFSC      STATUS+0, 2
 	INCF       R1+1, 1
 ;BicycleSafetySystem.c,298 :: 		}
-	GOTO       L_msDelay44
-L_msDelay45:
+	GOTO       L_msDelay43
+L_msDelay44:
 ;BicycleSafetySystem.c,299 :: 		}
 L_end_msDelay:
 	RETURN

@@ -3,6 +3,7 @@ main
 	sonar_init
 interrupt
 	ATD_read0
+		usDelay
 	Mul_16X16_U
 	Div_16X16_U
 	ATD_read1
@@ -11,6 +12,10 @@ interrupt
 		usDelay
 	Div_32x32_U
 	sonar_read1
+		usDelay
+		Mul_32x32_U
+		Div_32x32_U
+	sonar_read2
 		usDelay
 		Mul_32x32_U
 		Div_32x32_U

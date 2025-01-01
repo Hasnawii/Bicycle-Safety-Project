@@ -138,11 +138,11 @@ void interrupt() {
             pulse = 0;
         }
 
-        // Ultrasonic Sensor Trigger (~1s interval)
-        if (tick5 == 30) {
-            tick5 = 0;
-            sonar_read1();        // Trigger ultrasonic sensor 1 reading
-          //sonar_read2();        // Trigger ultrasonic sensor 2 reading
+        // Ultrasonic Sensor Trigger (~500ms interval)
+        if (tick5 == 7) {
+        tick5 = 0;
+        sonar_read1();
+        sonar_read2();
         }
 
         INTCON &= 0xFB;           // Clear Timer0 Interrupt flag
@@ -177,13 +177,13 @@ void main() {
 
     // Main Loop
     while (1) {
-        if (D1 < 10) {
+        if (D1 < 20) {
             PORTC |= 0x0C;        // Turn on RC2 and RC3
         } else {
             PORTC &= 0xF3;        // Turn off RC2 and RC3
         }
 
-        if (D2 < 10) {
+        if (D2 < 20) {
            PORTC |= 0x30;
         } else {
            PORTC &= 0xCF;
@@ -202,7 +202,7 @@ void ATD_init(void) {
 // Read ADC value from channel 0
 unsigned int ATD_read0(void) {
     ADCON0 &= 0xC7;            // Select channel 0
-    delay_us(10);              // Stabilize ADC input
+    usDelay(10);               // Stabilize ADC input
     ADCON0 |= 0x04;            // Start ADC conversion
     while (ADCON0 & 0x04);     // Wait for conversion to complete
     return ((ADRESH << 8) | ADRESL);
@@ -276,9 +276,9 @@ void sonar_read2(void) {
     while (PORTC & 0x40);             // Wait until the pulse is received
     T1CON = 0x18;                     // TMR1 OFF
 
-    T2counts = ((TMR1H << 8) | TMR1L) + (T1overflow * 65536);
+    T2counts = ((TMR1H << 8) | TMR1L) + (T2overflow * 65536);
     T2time = T2counts;                // Time in microseconds
-    D2 = ((T1time * 34) / 1000) / 2;  // Calculate distance in cm
+    D2 = ((T2time * 34) / 1000) / 2;  // Calculate distance in cm
 }
 
 // Microsecond Delay
