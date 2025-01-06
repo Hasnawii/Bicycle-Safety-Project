@@ -26,6 +26,8 @@ unsigned long T2counts;     // Total Timer1 counts (32 bits)
 unsigned long T2time;       // Echo time in microseconds
 unsigned long D1;           // Calculated distance in cm  for ultrasonic sensor
 unsigned long D2;           // Calculated distance in cm  for ultrasonic sensor
+unsigned char mspeed1;
+unsigned char mspeed2;
 
 // Function Declarations
 void ATD_init(void);            // Initialize ADC
@@ -37,6 +39,9 @@ void msDelay(unsigned int);     // Millisecond delay function
 void sonar_init(void);          // Initialize ultrasonic sensor
 void sonar_read1(void);         // Read ultrasonic sensor
 void sonar_read2(void);         // Read ultrasonic sensor
+void CCPPWM_init(void);
+void motor1(unsigned char);
+void motor2(unsigned char);
 
 // Interrupt Service Routine
 void interrupt() {
@@ -139,10 +144,10 @@ void interrupt() {
         }
 
         // Ultrasonic Sensor Trigger (~500ms interval)
-        if (tick5 == 7) {
-        tick5 = 0;
-        sonar_read1();
-        sonar_read2();
+        if (tick5 == 15) {
+            tick5 = 0;
+            sonar_read1();        // Trigger ultrasonic sensor 1 reading
+            //sonar_read2();        // Trigger ultrasonic sensor 2 reading
         }
 
         INTCON &= 0xFB;           // Clear Timer0 Interrupt flag
@@ -160,13 +165,13 @@ void main() {
     // Configure Ports
     TRISB = 0x71;                // RB1, RB2, RB3, RB7 as outputs; RB0, RB4, RB5, RB6 as inputs
     PORTB = 0x00;                // Initialize PORTB to LOW
-    TRISC = 0x40;                // Configure RC6 as input
+    TRISC = 0x50;                // Configure RC6 and RC4 as input
     PORTC = 0x00;                // Initialize PORTC to LOW
 
-    // Initialize ADC
-    ATD_init();
+    ATD_init();                  // Initialize ADC
     sonar_init();                // Initialize ultrasonic sensor
-
+    CCPPWM_init();
+    
     // Configure Timer0
     OPTION_REG = 0x07;           // Oscillator clock/4, prescaler of 256
     INTCON = 0xF8;               // Enable all interrupts
@@ -177,16 +182,16 @@ void main() {
 
     // Main Loop
     while (1) {
-        if (D1 < 20) {
-            PORTC |= 0x0C;        // Turn on RC2 and RC3
-        } else {
-            PORTC &= 0xF3;        // Turn off RC2 and RC3
+        
+        if (D1 < 10) {
+        } else if (D1 < 30) {
+            PORTC &= 0xFB;     // Turn off RC2 and RC3
         }
 
         if (D2 < 20) {
-           PORTC |= 0x30;
+           PORTC |= 0x80;
         } else {
-           PORTC &= 0xCF;
+           PORTC &= 0xF7;
         }
     }
 }
@@ -248,13 +253,13 @@ void sonar_read1(void) {
     TMR1H = 0;
     TMR1L = 0;
 
-    PORTB |= 0x80;                    // Trigger the ultrasonic sensor (RB7 connected to trigger)
+    PORTC |= 0x80;                    // Trigger the ultrasonic sensor (RC7 connected to trigger)
     usDelay(10);                      // Keep trigger for 10uS
-    PORTB &= 0x7F;                    // Remove trigger
+    PORTC &= 0x7F;                    // Remove trigger
 
-    while (!(PORTB & 0x40));          // Wait until you start receiving the echo
+    while (!(PORTC & 0x40));          // Wait until you start receiving the echo
     T1CON = 0x19;                     // TMR1 ON, Fosc/4 (inc 1uS) with 1:2 prescaler
-    while (PORTB & 0x40);             // Wait until the pulse is received
+    while (PORTC & 0x40);             // Wait until the pulse is received
     T1CON = 0x18;                     // TMR1 OFF
 
     T1counts = ((TMR1H << 8) | TMR1L) + (T1overflow * 65536);
@@ -267,18 +272,34 @@ void sonar_read2(void) {
     TMR1H = 0;
     TMR1L = 0;
 
-    PORTC |= 0x80;                    // Trigger the ultrasonic sensor (RC7 connected to trigger)
+    PORTC |= 0x20;                    // Trigger the ultrasonic sensor (RC5 connected to trigger)
     usDelay(10);                      // Keep trigger for 10uS
-    PORTC &= 0x7F;                    // Remove trigger
+    PORTC &= 0xDF ;                    // Remove trigger
 
-    while (!(PORTC & 0x40));          // Wait until you start receiving the echo
+    while (!(PORTC & 0x10));          // Wait until you start receiving the echo
     T1CON = 0x19;                     // TMR1 ON, Fosc/4 (inc 1uS) with 1:2 prescaler
-    while (PORTC & 0x40);             // Wait until the pulse is received
+    while (PORTC & 0x10);             // Wait until the pulse is received
     T1CON = 0x18;                     // TMR1 OFF
 
     T2counts = ((TMR1H << 8) | TMR1L) + (T2overflow * 65536);
     T2time = T2counts;                // Time in microseconds
     D2 = ((T2time * 34) / 1000) / 2;  // Calculate distance in cm
+}
+
+void CCPPWM_init(void){                  // Configure CCP1 and CCP2 at 2ms period with 50% duty cycle
+    T2CON = 0x07;                    // Enable Timer2 at Fosc/4 with 1:16 prescaler (8 uS percount 2000uS to count 250 counts)
+    CCP1CON = 0x0C;                  // Enable PWM for CCP1
+    CCP2CON = 0x0C;                  // Enable PWM for CCP2
+    PR2 = 250;                       // 250 counts = 8uS *250 = 2ms period
+    CCPR1L = 125;                    // Buffer where we are specifying the pulse width (duty cycle)
+    CCPR2L = 125;                    // Buffer where we are specifying the pulse width (duty cycle)
+}
+
+void motor1(unsigned char speed){
+    CCPR1L = speed;                   // speed 0-250, PWM from RC2
+}
+void motor2(unsigned char speed2){
+    CCPR2L = speed2;                  // speed 125, PWM from RC1
 }
 
 // Microsecond Delay

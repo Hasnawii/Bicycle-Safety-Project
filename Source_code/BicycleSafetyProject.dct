@@ -105,6 +105,7 @@ ccp2x
 ccp2x_bit
 ccp2y
 ccp2y_bit
+ccppwm_init
 ccpr1
 ccpr1h
 ccpr1l
@@ -255,7 +256,11 @@ longint2double
 longword2double
 lturn
 main
+motor1
+motor2
 msdelay
+mspeed1
+mspeed2
 mul_16x16_s
 mul_16x16_u
 mul_32x32_fp

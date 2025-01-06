@@ -27,6 +27,8 @@ unsigned long T2counts;
 unsigned long T2time;
 unsigned long D1;
 unsigned long D2;
+unsigned char mspeed1;
+unsigned char mspeed2;
 
 
 void ATD_init(void);
@@ -38,6 +40,9 @@ void msDelay(unsigned int);
 void sonar_init(void);
 void sonar_read1(void);
 void sonar_read2(void);
+void CCPPWM_init(void);
+void motor1(unsigned char);
+void motor2(unsigned char);
 
 
 void interrupt() {
@@ -140,10 +145,10 @@ void interrupt() {
  }
 
 
- if (tick5 == 7) {
+ if (tick5 == 15) {
  tick5 = 0;
  sonar_read1();
- sonar_read2();
+
  }
 
  INTCON &= 0xFB;
@@ -161,12 +166,12 @@ void main() {
 
  TRISB = 0x71;
  PORTB = 0x00;
- TRISC = 0x40;
+ TRISC = 0x50;
  PORTC = 0x00;
-
 
  ATD_init();
  sonar_init();
+ CCPPWM_init();
 
 
  OPTION_REG = 0x07;
@@ -178,16 +183,16 @@ void main() {
 
 
  while (1) {
- if (D1 < 20) {
- PORTC |= 0x0C;
- } else {
- PORTC &= 0xF3;
+
+ if (D1 < 10) {
+ } else if (D1 < 30) {
+ PORTC &= 0xFB;
  }
 
  if (D2 < 20) {
- PORTC |= 0x30;
+ PORTC |= 0x80;
  } else {
- PORTC &= 0xCF;
+ PORTC &= 0xF7;
  }
  }
 }
@@ -249,13 +254,13 @@ void sonar_read1(void) {
  TMR1H = 0;
  TMR1L = 0;
 
- PORTB |= 0x80;
+ PORTC |= 0x80;
  usDelay(10);
- PORTB &= 0x7F;
+ PORTC &= 0x7F;
 
- while (!(PORTB & 0x40));
+ while (!(PORTC & 0x40));
  T1CON = 0x19;
- while (PORTB & 0x40);
+ while (PORTC & 0x40);
  T1CON = 0x18;
 
  T1counts = ((TMR1H << 8) | TMR1L) + (T1overflow * 65536);
@@ -268,18 +273,34 @@ void sonar_read2(void) {
  TMR1H = 0;
  TMR1L = 0;
 
- PORTC |= 0x80;
+ PORTC |= 0x20;
  usDelay(10);
- PORTC &= 0x7F;
+ PORTC &= 0xDF ;
 
- while (!(PORTC & 0x40));
+ while (!(PORTC & 0x10));
  T1CON = 0x19;
- while (PORTC & 0x40);
+ while (PORTC & 0x10);
  T1CON = 0x18;
 
  T2counts = ((TMR1H << 8) | TMR1L) + (T2overflow * 65536);
  T2time = T2counts;
  D2 = ((T2time * 34) / 1000) / 2;
+}
+
+void CCPPWM_init(void){
+ T2CON = 0x07;
+ CCP1CON = 0x0C;
+ CCP2CON = 0x0C;
+ PR2 = 250;
+ CCPR1L = 125;
+ CCPR2L = 125;
+}
+
+void motor1(unsigned char speed){
+ CCPR1L = speed;
+}
+void motor2(unsigned char speed2){
+ CCPR2L = speed2;
 }
 
 
