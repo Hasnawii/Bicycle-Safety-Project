@@ -1,5 +1,4 @@
 #line 1 "C:/Users/Hasnawi/Desktop/Uni/Y4S1/Embedded Systems/Project/Final Design/Bicycle-Safety-Project/Source_code/BicycleSafetyProject.c"
-
 unsigned char tick;
 unsigned char tick1;
 unsigned char tick2;
@@ -29,6 +28,8 @@ unsigned long D1;
 unsigned long D2;
 unsigned char mspeed1;
 unsigned char mspeed2;
+unsigned char D1read;
+unsigned char D2read;
 
 
 void ATD_init(void);
@@ -41,8 +42,8 @@ void sonar_init(void);
 void sonar_read1(void);
 void sonar_read2(void);
 void CCPPWM_init(void);
-void motor1(unsigned char);
-void motor2(unsigned char);
+void motor1(void);
+void motor2(void);
 
 
 void interrupt() {
@@ -145,10 +146,10 @@ void interrupt() {
  }
 
 
- if (tick5 == 15) {
+ if (tick5 == 4) {
  tick5 = 0;
  sonar_read1();
-
+ sonar_read2();
  }
 
  INTCON &= 0xFB;
@@ -164,7 +165,9 @@ void interrupt() {
 
 void main() {
 
- TRISB = 0x71;
+ TRISA = 0xCF;
+ PORTA = 0x00;
+ TRISB = 0x31;
  PORTB = 0x00;
  TRISC = 0x50;
  PORTC = 0x00;
@@ -183,25 +186,48 @@ void main() {
 
 
  while (1) {
-
+ if (D1read & 0x01) {
  if (D1 < 10) {
+ PORTB |= 0x40;
+ mspeed1 = 250;
  } else if (D1 < 30) {
- PORTC &= 0xFB;
+ PORTB |= 0x40;
+ mspeed1 = 200;
+ } else if (D1 < 50) {
+ PORTB |= 0x40;
+ mspeed1 = 175;
+ } else {
+ PORTB &= 0xBF;
+ mspeed1 = 0;
+ }
+ D1read = 0x00;
  }
 
- if (D2 < 20) {
- PORTC |= 0x80;
+ if (D2read & 0x01) {
+ if (D2 < 10) {
+ mspeed2 = 250;
+ PORTA |= 0x20;
+ } else if (D2 < 50) {
+ mspeed2 = 120;
+ PORTA |= 0x20;
+ } else if (D2 < 100) {
+ mspeed2 = 60;
+ PORTA |= 0x20;
  } else {
- PORTC &= 0xF7;
+ mspeed2 = 0;
+ PORTA &= 0xDF;
  }
+ D2read = 0x00;
+ }
+ motor1();
+ motor2();
  }
 }
 
 
 void ATD_init(void) {
  ADCON0 = 0x41;
- ADCON1 = 0xC0;
- TRISA = 0xFF;
+ ADCON1 = 0xC4;
  TRISE = 0x07;
 }
 
@@ -225,7 +251,7 @@ unsigned int ATD_read1(void) {
 
 
 unsigned int ATD_read2(void) {
- ADCON0 = (ADCON0 & 0xD7) | 0x10;
+ ADCON0 = (ADCON0 & 0xDF) | 0x18;
  usDelay(10);
  ADCON0 |= 0x04;
  while (ADCON0 & 0x04);
@@ -240,12 +266,15 @@ void sonar_init(void) {
  T2overflow = 0;
  T2counts = 0;
  T2time = 0;
+ D1read = 0;
+ D2read = 0;
  D1 = 0;
  D2 = 0;
  TMR1H = 0;
  TMR1L = 0;
  PIE1 = PIE1 | 0x01;
  T1CON = 0x18;
+
 }
 
 
@@ -266,6 +295,7 @@ void sonar_read1(void) {
  T1counts = ((TMR1H << 8) | TMR1L) + (T1overflow * 65536);
  T1time = T1counts;
  D1 = ((T1time * 34) / 1000) / 2;
+ D1read = 0x01;
 }
 
 void sonar_read2(void) {
@@ -285,6 +315,7 @@ void sonar_read2(void) {
  T2counts = ((TMR1H << 8) | TMR1L) + (T2overflow * 65536);
  T2time = T2counts;
  D2 = ((T2time * 34) / 1000) / 2;
+ D2read = 0x01;
 }
 
 void CCPPWM_init(void){
@@ -294,13 +325,16 @@ void CCPPWM_init(void){
  PR2 = 250;
  CCPR1L = 125;
  CCPR2L = 125;
+ mspeed1 = 0;
+ mspeed2 = 0;
+
 }
 
-void motor1(unsigned char speed){
- CCPR1L = speed;
+void motor1(void){
+ CCPR1L = mspeed1;
 }
-void motor2(unsigned char speed2){
- CCPR2L = speed2;
+void motor2(void){
+ CCPR2L = mspeed2;
 }
 
 

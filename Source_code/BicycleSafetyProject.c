@@ -1,4 +1,3 @@
-// Global Variables
 unsigned char tick;         // Timer0 interrupt counter, increments every 32ms
 unsigned char tick1;        // Counter for right turn signal duration (~5 seconds)
 unsigned char tick2;        // Counter for left turn signal duration (~5 seconds)
@@ -28,6 +27,8 @@ unsigned long D1;           // Calculated distance in cm  for ultrasonic sensor
 unsigned long D2;           // Calculated distance in cm  for ultrasonic sensor
 unsigned char mspeed1;
 unsigned char mspeed2;
+unsigned char D1read;
+unsigned char D2read;
 
 // Function Declarations
 void ATD_init(void);            // Initialize ADC
@@ -40,8 +41,8 @@ void sonar_init(void);          // Initialize ultrasonic sensor
 void sonar_read1(void);         // Read ultrasonic sensor
 void sonar_read2(void);         // Read ultrasonic sensor
 void CCPPWM_init(void);
-void motor1(unsigned char);
-void motor2(unsigned char);
+void motor1(void);
+void motor2(void);
 
 // Interrupt Service Routine
 void interrupt() {
@@ -143,11 +144,11 @@ void interrupt() {
             pulse = 0;
         }
 
-        // Ultrasonic Sensor Trigger (~500ms interval)
-        if (tick5 == 15) {
+        // Ultrasonic Sensor Trigger (~128ms interval)
+        if (tick5 == 4) {
             tick5 = 0;
             sonar_read1();        // Trigger ultrasonic sensor 1 reading
-            //sonar_read2();        // Trigger ultrasonic sensor 2 reading
+            sonar_read2();        // Trigger ultrasonic sensor 2 reading
         }
 
         INTCON &= 0xFB;           // Clear Timer0 Interrupt flag
@@ -163,7 +164,9 @@ void interrupt() {
 // Main Function
 void main() {
     // Configure Ports
-    TRISB = 0x71;                // RB1, RB2, RB3, RB7 as outputs; RB0, RB4, RB5, RB6 as inputs
+    TRISA = 0xCF;                 // Configure RA4 and RA5 as output
+    PORTA = 0x00;
+    TRISB = 0x31;                // RB1, RB2, RB3, RB6, RB7 as outputs; RB0, RB4, RB5, RB6 as inputs
     PORTB = 0x00;                // Initialize PORTB to LOW
     TRISC = 0x50;                // Configure RC6 and RC4 as input
     PORTC = 0x00;                // Initialize PORTC to LOW
@@ -171,7 +174,7 @@ void main() {
     ATD_init();                  // Initialize ADC
     sonar_init();                // Initialize ultrasonic sensor
     CCPPWM_init();
-    
+
     // Configure Timer0
     OPTION_REG = 0x07;           // Oscillator clock/4, prescaler of 256
     INTCON = 0xF8;               // Enable all interrupts
@@ -182,25 +185,48 @@ void main() {
 
     // Main Loop
     while (1) {
-        
+      if (D1read & 0x01) {
         if (D1 < 10) {
+            PORTB |= 0x40;
+            mspeed1 = 250;
         } else if (D1 < 30) {
-            PORTC &= 0xFB;     // Turn off RC2 and RC3
-        }
-
-        if (D2 < 20) {
-           PORTC |= 0x80;
+            PORTB |= 0x40;
+            mspeed1 = 200;
+        } else if (D1 < 50) {
+            PORTB |= 0x40;
+            mspeed1 = 175;
         } else {
-           PORTC &= 0xF7;
+            PORTB &= 0xBF;
+            mspeed1 = 0;
         }
+        D1read = 0x00;
+       }
+
+       if (D2read & 0x01) {
+        if (D2 < 10) {
+            mspeed2 = 250;
+            PORTA |= 0x20;
+        } else if (D2 < 50) {
+            mspeed2 = 120;
+            PORTA |= 0x20;
+        } else if (D2 < 100) {
+            mspeed2 = 60;
+            PORTA |= 0x20;
+        } else {
+            mspeed2 = 0;
+            PORTA &= 0xDF;
+        }
+        D2read = 0x00;
+       }
+        motor1();
+        motor2();
     }
 }
 
 // ADC Initialization
 void ATD_init(void) {
     ADCON0 = 0x41;             // ADC ON, Don't GO, Channel 0, Fosc/16
-    ADCON1 = 0xC0;             // All analog channels, 500 KHz, right justified
-    TRISA = 0xFF;              // Configure PORTA as input
+    ADCON1 = 0xC4;             // AN0 AN1 AN3 analog channels, 500 KHz, right justified
     TRISE = 0x07;              // Configure PORTE as input
 }
 
@@ -224,7 +250,7 @@ unsigned int ATD_read1(void) {
 
 // Read ADC value from channel 2
 unsigned int ATD_read2(void) {
-    ADCON0 = (ADCON0 & 0xD7) | 0x10;  // Select channel 2
+    ADCON0 = (ADCON0 & 0xDF) | 0x18;  // Select channel 3
     usDelay(10);                      // Stabilize ADC input
     ADCON0 |= 0x04;                   // Start ADC conversion
     while (ADCON0 & 0x04);            // Wait for conversion to complete
@@ -239,12 +265,15 @@ void sonar_init(void) {
     T2overflow = 0;
     T2counts = 0;
     T2time = 0;
+    D1read = 0;
+    D2read = 0;
     D1 = 0;
     D2 = 0;
     TMR1H = 0;
     TMR1L = 0;
     PIE1 = PIE1 | 0x01;               // Enable TMR1 Overflow interrupt
     T1CON = 0x18;                     // TMR1 OFF, Fosc/4 (inc 1uS) with 1:2 prescaler
+    // Use external clock instead
 }
 
 // Ultrasonic Sensor Reading
@@ -265,6 +294,7 @@ void sonar_read1(void) {
     T1counts = ((TMR1H << 8) | TMR1L) + (T1overflow * 65536);
     T1time = T1counts;                // Time in microseconds
     D1 = ((T1time * 34) / 1000) / 2;  // Calculate distance in cm
+    D1read = 0x01;
 }
 
 void sonar_read2(void) {
@@ -284,6 +314,7 @@ void sonar_read2(void) {
     T2counts = ((TMR1H << 8) | TMR1L) + (T2overflow * 65536);
     T2time = T2counts;                // Time in microseconds
     D2 = ((T2time * 34) / 1000) / 2;  // Calculate distance in cm
+    D2read = 0x01;
 }
 
 void CCPPWM_init(void){                  // Configure CCP1 and CCP2 at 2ms period with 50% duty cycle
@@ -293,13 +324,16 @@ void CCPPWM_init(void){                  // Configure CCP1 and CCP2 at 2ms perio
     PR2 = 250;                       // 250 counts = 8uS *250 = 2ms period
     CCPR1L = 125;                    // Buffer where we are specifying the pulse width (duty cycle)
     CCPR2L = 125;                    // Buffer where we are specifying the pulse width (duty cycle)
+    mspeed1 = 0;
+    mspeed2 = 0;
+
 }
 
-void motor1(unsigned char speed){
-    CCPR1L = speed;                   // speed 0-250, PWM from RC2
+void motor1(void){
+    CCPR1L = mspeed1;                   // speed 0-250, PWM from RC2
 }
-void motor2(unsigned char speed2){
-    CCPR2L = speed2;                  // speed 125, PWM from RC1
+void motor2(void){
+    CCPR2L = mspeed2;                  // speed 0-250, PWM from RC1
 }
 
 // Microsecond Delay

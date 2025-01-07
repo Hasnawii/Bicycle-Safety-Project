@@ -24,7 +24,7 @@ Count=0
 Count=0
 ActiveImageIndex=-1
 [OPENED_FILES]
-File0=BicycleSafetyProject.c
+File0=..\..\New folder (2)\MyProject.c
 Count=1
 [EEPROM]
 Count=0
@@ -46,7 +46,9 @@ Count=0
 0=BicycleSafetyProject.mcppi
 Count=1
 [LIB_EXPANDED_NODES]
-Count=0
+0=mikroE Libraries
+1=System Libraries
+Count=2
 [PROGRAMMER_TYPE]
 Value=mikroE mikroProg
 [CODEGRIP_OPTIONS]

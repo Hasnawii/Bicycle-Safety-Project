@@ -2,6 +2,8 @@ main
 	ATD_init
 	sonar_init
 	CCPPWM_init
+	motor1
+	motor2
 interrupt
 	ATD_read0
 		usDelay
@@ -13,6 +15,10 @@ interrupt
 		usDelay
 	Div_32x32_U
 	sonar_read1
+		usDelay
+		Mul_32x32_U
+		Div_32x32_U
+	sonar_read2
 		usDelay
 		Mul_32x32_U
 		Div_32x32_U
