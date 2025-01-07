@@ -1,4 +1,5 @@
 #line 1 "C:/Users/Hasnawi/Desktop/Uni/Y4S1/Embedded Systems/Project/Final Design/Bicycle-Safety-Project/Source_code/BicycleSafetyProject.c"
+
 unsigned char tick;
 unsigned char tick1;
 unsigned char tick2;
@@ -186,6 +187,7 @@ void main() {
 
 
  while (1) {
+
  if (D1read & 0x01) {
  if (D1 < 10) {
  PORTB |= 0x40;
@@ -203,6 +205,7 @@ void main() {
  D1read = 0x00;
  }
 
+
  if (D2read & 0x01) {
  if (D2 < 10) {
  mspeed2 = 250;
@@ -219,6 +222,7 @@ void main() {
  }
  D2read = 0x00;
  }
+
  motor1();
  motor2();
  }
@@ -274,7 +278,6 @@ void sonar_init(void) {
  TMR1L = 0;
  PIE1 = PIE1 | 0x01;
  T1CON = 0x18;
-
 }
 
 
@@ -298,6 +301,7 @@ void sonar_read1(void) {
  D1read = 0x01;
 }
 
+
 void sonar_read2(void) {
  T2overflow = 0;
  TMR1H = 0;
@@ -305,7 +309,7 @@ void sonar_read2(void) {
 
  PORTC |= 0x20;
  usDelay(10);
- PORTC &= 0xDF ;
+ PORTC &= 0xDF;
 
  while (!(PORTC & 0x10));
  T1CON = 0x19;
@@ -318,7 +322,8 @@ void sonar_read2(void) {
  D2read = 0x01;
 }
 
-void CCPPWM_init(void){
+
+void CCPPWM_init(void) {
  T2CON = 0x07;
  CCP1CON = 0x0C;
  CCP2CON = 0x0C;
@@ -327,13 +332,15 @@ void CCPPWM_init(void){
  CCPR2L = 125;
  mspeed1 = 0;
  mspeed2 = 0;
-
 }
 
-void motor1(void){
+
+void motor1(void) {
  CCPR1L = mspeed1;
 }
-void motor2(void){
+
+
+void motor2(void) {
  CCPR2L = mspeed2;
 }
 
