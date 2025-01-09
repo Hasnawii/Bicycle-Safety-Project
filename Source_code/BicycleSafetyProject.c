@@ -30,6 +30,11 @@ unsigned char mspeed1;      // Motor speed for motor 1
 unsigned char mspeed2;      // Motor speed for motor 2
 unsigned char D1read;       // Flag to indicate a new reading is available for sensor 1
 unsigned char D2read;       // Flag to indicate a new reading is available for sensor 2
+unsigned int period, duty;  // period in ms and duty cycle in ms
+unsigned char HL;
+unsigned int angle;
+unsigned char sonar_e;
+unsigned char servo_e;
 
 // Function Declarations
 void ATD_init(void);            // Initialize ADC
@@ -42,11 +47,25 @@ void sonar_init(void);          // Initialize ultrasonic sensors
 void sonar_read1(void);         // Read ultrasonic sensor 1
 void sonar_read2(void);         // Read ultrasonic sensor 2
 void CCPPWM_init(void);         // Initialize CCP for PWM generation
+void CCPcompare_init(void);
 void motor1(void);              // Update motor 1 speed
 void motor2(void);              // Update motor 2 speed
+void PWMusDelay(unsigned int);
 
 // Interrupt Service Routine
 void interrupt() {
+
+   //External Interrupt
+   if (INTCON&0x02){
+      if (!(PORTB & 0x01)) {
+         sonar_e = 0;
+         servo_e = 1;
+
+      }
+   INTCON=INTCON&0xFD;
+   }
+
+
     // PORTB Change Interrupt (Handles Button Presses)
     if (INTCON & 0x01) {
         if (!(PORTB & 0x10)) {   // Check if RB5 (right turn button) is pressed
@@ -66,6 +85,7 @@ void interrupt() {
         tick3++;                 // Increment hall sensor pulse counter
         tick4++;                 // Increment speed calculation counter
         tick5++;                 // Increment ultrasonic sensor counter
+        //Mcntr += 32;
 
         // ADC Sampling Logic (~64ms interval)
         if (tick == 2) {
@@ -146,10 +166,12 @@ void interrupt() {
         }
 
         // Ultrasonic Sensor Trigger (~128ms interval)
-        if (tick5 == 4) {
-            tick5 = 0;
-            sonar_read1();        // Trigger ultrasonic sensor 1 reading
-            sonar_read2();        // Trigger ultrasonic sensor 2 reading
+        if (sonar_e) {
+           if (tick5 == 4) {
+              tick5 = 0;
+              sonar_read1();        // Trigger ultrasonic sensor 1 reading
+              sonar_read2();        // Trigger ultrasonic sensor 2 reading
+           }
         }
 
         INTCON &= 0xFB;           // Clear Timer0 Interrupt flag
@@ -160,12 +182,33 @@ void interrupt() {
         T2overflow++;
         PIR1 &= 0xFE;             // Clear Timer1 Overflow Interrupt flag
     }
+
+    //CCP2 interrupt
+    if (PIR2 & 0x01) {
+       if(HL){ //high
+           CCPR2H= angle >>8;
+           CCPR2L= angle;
+           HL = 0;//next time low
+           CCP2CON=0x09;//next time Falling edge
+           TMR1H=0;
+           TMR1L=0;
+    } else {  //low
+           CCPR2H = (40000 - angle) >>8;
+           CCPR2L = (40000 - angle);
+           CCP2CON = 0x08; //next time rising edge
+           HL = 1; //next time High
+           TMR1H = 0;
+           TMR1L = 0;
+     }
+
+     PIR2 &= 0xFE;
+    }
 }
 
 // Main Function
 void main() {
     // Configure Ports
-    TRISA = 0xCF;                 // Configure RA4 and RA5 as output
+    TRISA = 0x0F;                 // Configure RA4 RA5 RA6 RA7 as output
     PORTA = 0x00;                 // Initialize PORTA to LOW
     TRISB = 0x31;                 // Configure RB0, RB4, RB5, RB6 as inputs
     PORTB = 0x00;                 // Initialize PORTB to LOW
@@ -175,6 +218,7 @@ void main() {
     ATD_init();                  // Initialize ADC
     sonar_init();                // Initialize ultrasonic sensors
     CCPPWM_init();               // Initialize PWM for motors
+    CCPcompare_init();
 
     // Configure Timer0
     OPTION_REG = 0x07;           // Oscillator clock/4, prescaler of 256
@@ -189,7 +233,7 @@ void main() {
         // Update motor 1 speed based on ultrasonic sensor 1 reading
         if (D1read & 0x01) {
             if (D1 < 10) {
-                PORTB |= 0x40;   // Turn on motor 1
+                PORTB |= 0x40;  // Turn on motor 1
                 mspeed1 = 250;  // Set high speed
             } else if (D1 < 30) {
                 PORTB |= 0x40;   // Maintain motor 1
@@ -208,20 +252,19 @@ void main() {
         if (D2read & 0x01) {
             if (D2 < 10) {
                 mspeed2 = 250;  // Set high speed
-                PORTA |= 0x20; // Turn on motor 2
-            } else if (D2 < 50) {
+                PORTC |= 0x08; // Turn on motor 2
+            } else if (D2 < 30) {
                 mspeed2 = 120;  // Set medium speed
-                PORTA |= 0x20; // Maintain motor 2
-            } else if (D2 < 100) {
+                PORTC |= 0x08; // Maintain motor 2
+            } else if (D2 < 50) {
                 mspeed2 = 60;   // Set low speed
-                PORTA |= 0x20; // Maintain motor 2
+                PORTC |= 0x808; // Maintain motor 2
             } else {
                 mspeed2 = 0;    // Stop motor
-                PORTA &= 0xDF; // Turn off motor 2
+                PORTC &= ~0x08; // Turn off motor 2
             }
             D2read = 0x00;       // Clear read flag for sensor 2
         }
-
         motor1();               // Update motor 1
         motor2();               // Update motor 2
     }
@@ -275,8 +318,8 @@ void sonar_init(void) {
     D2 = 0;
     TMR1H = 0;
     TMR1L = 0;
-    PIE1 = PIE1 | 0x01;               // Enable TMR1 Overflow interrupt
-    T1CON = 0x18;                     // TMR1 OFF, Fosc/4 (1uS increments) with 1:2 prescaler
+    PIE1 |= 0x01;               // Enable TMR1 Overflow interrupt
+    T1CON = 0x18;               // TMR1 OFF, Fosc/4 (1uS increments) with 1:2 prescaler
 }
 
 // Ultrasonic Sensor Reading for Sensor 1
@@ -284,6 +327,7 @@ void sonar_read1(void) {
     T1overflow = 0;
     TMR1H = 0;
     TMR1L = 0;
+    T1CON = 0x18;
 
     PORTC |= 0x80;                    // Trigger ultrasonic sensor 1 (RC7 connected to trigger)
     usDelay(10);                      // Keep trigger for 10uS
@@ -305,6 +349,7 @@ void sonar_read2(void) {
     T2overflow = 0;
     TMR1H = 0;
     TMR1L = 0;
+    T1CON = 0x18;
 
     PORTC |= 0x20;                    // Trigger ultrasonic sensor 2 (RC5 connected to trigger)
     usDelay(10);                      // Keep trigger for 10uS
@@ -325,14 +370,20 @@ void sonar_read2(void) {
 void CCPPWM_init(void) {
     T2CON = 0x07;                    // Enable Timer2 with 1:16 prescaler
     CCP1CON = 0x0C;                  // Enable PWM for CCP1
-    CCP2CON = 0x0C;                  // Enable PWM for CCP2
     PR2 = 250;                       // Set Timer2 period
     CCPR1L = 125;                    // Initial duty cycle for CCP1 (50%)
-    CCPR2L = 125;                    // Initial duty cycle for CCP2 (50%)
     mspeed1 = 0;
     mspeed2 = 0;
+    period = 0;
+    duty = 0;
 }
 
+void CCPcompare_init(void){
+    HL = 1; //start high
+    CCP2CON = 0x08;//
+    CCPR2H=2000>>8;
+    CCPR2L=2000;
+}
 // Update Motor 1 Speed
 void motor1(void) {
     CCPR1L = mspeed1;                // Set PWM duty cycle for motor 1
@@ -340,7 +391,10 @@ void motor1(void) {
 
 // Update Motor 2 Speed
 void motor2(void) {
-    CCPR2L = mspeed2;                // Set PWM duty cycle for motor 2
+     PORTB |= 0x80;                       //High
+     PWMusDelay(mspeed2*2);
+     PORTB &= 0x7F;                       //Low
+     PWMusDelay((250-mspeed2)*2);
 }
 
 // Microsecond Delay
@@ -352,6 +406,13 @@ void usDelay(unsigned int usCnt) {
     }
 }
 
+void PWMusDelay(unsigned int PWMusCnt) {
+    unsigned int PWMus;
+    for (PWMus = 0; PWMus < PWMusCnt; PWMus++) {
+        asm NOP;                     // 0.5 uS
+        asm NOP;                     // 0.5 uS
+    }
+}
 // Millisecond Delay
 void msDelay(unsigned int msCnt) {
     unsigned int ms, cc;

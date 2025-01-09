@@ -39,6 +39,7 @@ adon
 adon_bit
 adresh
 adresl
+angle
 atd_init
 atd_read0
 atd_read1
@@ -105,6 +106,7 @@ ccp2x
 ccp2x_bit
 ccp2y
 ccp2y_bit
+ccpcompare_init
 ccppwm_init
 ccpr1
 ccpr1h
@@ -198,6 +200,7 @@ double2int
 double2longint
 double2longword
 double2word
+duty
 eeadr
 eeadrh
 eecon1
@@ -234,6 +237,7 @@ go_not_done
 go_not_done_bit
 halla2
 halld2
+hl
 ibf
 ibf_bit
 ibf_trise_bit
@@ -323,6 +327,7 @@ peie
 peie_bit
 pen
 pen_bit
+period
 pie1
 pie2
 pir1
@@ -350,6 +355,7 @@ pspmode
 pspmode_bit
 pspmode_trise_bit
 pulse
+pwmusdelay
 r
 r_bit
 r_not_w
@@ -477,12 +483,14 @@ s_bit
 sdiv3232l
 sen
 sen_bit
+servo_e
 setfdz32
 setfov32
 setfun32
 setiov3224
 smp
 smp_bit
+sonar_e
 sonar_init
 sonar_read1
 sonar_read2

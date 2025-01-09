@@ -2,8 +2,10 @@ main
 	ATD_init
 	sonar_init
 	CCPPWM_init
+	CCPcompare_init
 	motor1
 	motor2
+		PWMusDelay
 interrupt
 	ATD_read0
 		usDelay

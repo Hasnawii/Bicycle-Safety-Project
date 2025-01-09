@@ -31,6 +31,11 @@ unsigned char mspeed1;
 unsigned char mspeed2;
 unsigned char D1read;
 unsigned char D2read;
+unsigned int period, duty;
+unsigned char HL;
+unsigned int angle;
+unsigned char sonar_e;
+unsigned char servo_e;
 
 
 void ATD_init(void);
@@ -43,11 +48,25 @@ void sonar_init(void);
 void sonar_read1(void);
 void sonar_read2(void);
 void CCPPWM_init(void);
+void CCPcompare_init(void);
 void motor1(void);
 void motor2(void);
+void PWMusDelay(unsigned int);
 
 
 void interrupt() {
+
+
+ if (INTCON&0x02){
+ if (!(PORTB & 0x01)) {
+ sonar_e = 0;
+ servo_e = 1;
+
+ }
+ INTCON=INTCON&0xFD;
+ }
+
+
 
  if (INTCON & 0x01) {
  if (!(PORTB & 0x10)) {
@@ -67,6 +86,7 @@ void interrupt() {
  tick3++;
  tick4++;
  tick5++;
+
 
 
  if (tick == 2) {
@@ -147,10 +167,12 @@ void interrupt() {
  }
 
 
+ if (sonar_e) {
  if (tick5 == 4) {
  tick5 = 0;
  sonar_read1();
  sonar_read2();
+ }
  }
 
  INTCON &= 0xFB;
@@ -161,12 +183,33 @@ void interrupt() {
  T2overflow++;
  PIR1 &= 0xFE;
  }
+
+
+ if (PIR2 & 0x01) {
+ if(HL){
+ CCPR2H= angle >>8;
+ CCPR2L= angle;
+ HL = 0;
+ CCP2CON=0x09;
+ TMR1H=0;
+ TMR1L=0;
+ } else {
+ CCPR2H = (40000 - angle) >>8;
+ CCPR2L = (40000 - angle);
+ CCP2CON = 0x08;
+ HL = 1;
+ TMR1H = 0;
+ TMR1L = 0;
+ }
+
+ PIR2 &= 0xFE;
+ }
 }
 
 
 void main() {
 
- TRISA = 0xCF;
+ TRISA = 0x0F;
  PORTA = 0x00;
  TRISB = 0x31;
  PORTB = 0x00;
@@ -176,6 +219,7 @@ void main() {
  ATD_init();
  sonar_init();
  CCPPWM_init();
+ CCPcompare_init();
 
 
  OPTION_REG = 0x07;
@@ -209,20 +253,19 @@ void main() {
  if (D2read & 0x01) {
  if (D2 < 10) {
  mspeed2 = 250;
- PORTA |= 0x20;
- } else if (D2 < 50) {
+ PORTC |= 0x08;
+ } else if (D2 < 30) {
  mspeed2 = 120;
- PORTA |= 0x20;
- } else if (D2 < 100) {
+ PORTC |= 0x08;
+ } else if (D2 < 50) {
  mspeed2 = 60;
- PORTA |= 0x20;
+ PORTC |= 0x808;
  } else {
  mspeed2 = 0;
- PORTA &= 0xDF;
+ PORTC &= ~0x08;
  }
  D2read = 0x00;
  }
-
  motor1();
  motor2();
  }
@@ -276,7 +319,7 @@ void sonar_init(void) {
  D2 = 0;
  TMR1H = 0;
  TMR1L = 0;
- PIE1 = PIE1 | 0x01;
+ PIE1 |= 0x01;
  T1CON = 0x18;
 }
 
@@ -285,6 +328,7 @@ void sonar_read1(void) {
  T1overflow = 0;
  TMR1H = 0;
  TMR1L = 0;
+ T1CON = 0x18;
 
  PORTC |= 0x80;
  usDelay(10);
@@ -306,6 +350,7 @@ void sonar_read2(void) {
  T2overflow = 0;
  TMR1H = 0;
  TMR1L = 0;
+ T1CON = 0x18;
 
  PORTC |= 0x20;
  usDelay(10);
@@ -326,14 +371,20 @@ void sonar_read2(void) {
 void CCPPWM_init(void) {
  T2CON = 0x07;
  CCP1CON = 0x0C;
- CCP2CON = 0x0C;
  PR2 = 250;
  CCPR1L = 125;
- CCPR2L = 125;
  mspeed1 = 0;
  mspeed2 = 0;
+ period = 0;
+ duty = 0;
 }
 
+void CCPcompare_init(void){
+ HL = 1;
+ CCP2CON = 0x08;
+ CCPR2H=2000>>8;
+ CCPR2L=2000;
+}
 
 void motor1(void) {
  CCPR1L = mspeed1;
@@ -341,7 +392,10 @@ void motor1(void) {
 
 
 void motor2(void) {
- CCPR2L = mspeed2;
+ PORTB |= 0x80;
+ PWMusDelay(mspeed2*2);
+ PORTB &= 0x7F;
+ PWMusDelay((250-mspeed2)*2);
 }
 
 
@@ -353,6 +407,13 @@ void usDelay(unsigned int usCnt) {
  }
 }
 
+void PWMusDelay(unsigned int PWMusCnt) {
+ unsigned int PWMus;
+ for (PWMus = 0; PWMus < PWMusCnt; PWMus++) {
+ asm NOP;
+ asm NOP;
+ }
+}
 
 void msDelay(unsigned int msCnt) {
  unsigned int ms, cc;
