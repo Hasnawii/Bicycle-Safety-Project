@@ -1,4 +1,5 @@
 main
+	port_init
 	ATD_init
 	sonar_init
 	CCPPWM_init
@@ -6,6 +7,7 @@ main
 	motor1
 	motor2
 		PWMusDelay
+	msDelay
 interrupt
 	ATD_read0
 		usDelay

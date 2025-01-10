@@ -332,6 +332,7 @@ pie1
 pie2
 pir1
 pir2
+port_init
 port_to_tris_offset
 porta
 portb
@@ -484,6 +485,7 @@ sdiv3232l
 sen
 sen_bit
 servo_e
+servo_flag
 setfdz32
 setfov32
 setfun32
@@ -585,6 +587,7 @@ tmr2if
 tmr2if_bit
 tmr2on
 tmr2on_bit
+toggle_servo
 toutps0
 toutps0_bit
 toutps1

@@ -37,7 +37,12 @@ unsigned int angle;
 unsigned char sonar_e;
 unsigned char servo_e;
 
+unsigned char servo_flag;
+unsigned char toggle_servo;
 
+
+
+void port_init(void);
 void ATD_init(void);
 unsigned int ATD_read0(void);
 unsigned int ATD_read1(void);
@@ -55,38 +60,11 @@ void PWMusDelay(unsigned int);
 
 
 void interrupt() {
-
-
- if (INTCON&0x02){
- if (!(PORTB & 0x01)) {
- sonar_e = 0;
- servo_e = 1;
-
- }
- INTCON=INTCON&0xFD;
- }
-
-
-
- if (INTCON & 0x01) {
- if (!(PORTB & 0x10)) {
- PORTB |= 0x04;
- rturn = 1;
- }
- if (!(PORTB & 0x20)) {
- PORTB |= 0x08;
- lturn = 1;
- }
- INTCON &= 0xFE;
- }
-
-
+#line 79 "C:/Users/Hasnawi/Desktop/Uni/Y4S1/Embedded Systems/Project/Final Design/Bicycle-Safety-Project/Source_code/BicycleSafetyProject.c"
  if (INTCON & 0x04) {
  tick++;
  tick3++;
  tick4++;
- tick5++;
-
 
 
  if (tick == 2) {
@@ -100,10 +78,24 @@ void interrupt() {
 
 
  if ((flexD0 > 34) || (flexD1 > 34)) {
- PORTB |= 0x02;
+ PORTD |= 0x03;
  } else {
- PORTB &= 0xFD;
+ PORTD &= 0xFC;
  }
+ }
+
+ if (!(PORTE & 0x01)) {
+ PORTD |= 0x04;
+ rturn = 1;
+ }
+ if (!(PORTE & 0x02)) {
+ PORTD |= 0x08;
+ lturn = 1;
+ }
+
+ if (!(PORTE & 0x04)) {
+ servo_flag = 1;
+ toggle_servo = !toggle_servo;
  }
 
 
@@ -113,12 +105,12 @@ void interrupt() {
 
  if (ticka == 15) {
  ticka = 0;
- PORTB ^= 0x04;
+ PORTD ^= 0x04;
  }
  if (tick1 == 150) {
  tick1 = 0;
  rturn = 0;
- PORTB &= 0xFB;
+ PORTD &= 0xFB;
  }
  }
 
@@ -129,17 +121,18 @@ void interrupt() {
 
  if (tickb == 15) {
  tickb = 0;
- PORTB ^= 0x08;
+ PORTD ^= 0x08;
  }
  if (tick2 == 150) {
  tick2 = 0;
  lturn = 0;
- PORTB &= 0xF7;
+ PORTD &= 0xF7;
  }
  }
 
 
- if (tick3 == 7) {
+
+ if (tick3 == 3) {
  tick3 = 0;
 
 
@@ -168,6 +161,9 @@ void interrupt() {
 
 
  if (sonar_e) {
+ tick5++;
+ PIE2 &= 0xFE;
+ T1CON = 0x18;
  if (tick5 == 4) {
  tick5 = 0;
  sonar_read1();
@@ -201,7 +197,6 @@ void interrupt() {
  TMR1H = 0;
  TMR1L = 0;
  }
-
  PIR2 &= 0xFE;
  }
 }
@@ -209,13 +204,7 @@ void interrupt() {
 
 void main() {
 
- TRISA = 0x0F;
- PORTA = 0x00;
- TRISB = 0x31;
- PORTB = 0x00;
- TRISC = 0x50;
- PORTC = 0x00;
-
+ port_init();
  ATD_init();
  sonar_init();
  CCPPWM_init();
@@ -223,15 +212,21 @@ void main() {
 
 
  OPTION_REG = 0x07;
- INTCON = 0xF8;
+ INTCON = 0xF0;
  TMR0 = 0;
 
 
  tick = tick1 = tick2 = tick3 = tick4 = ticka = tickb = pulse = 0;
 
+ servo_flag = 0;
+ sonar_e = 1;
+ toggle_servo = 0;
+
+
 
  while (1) {
 
+ if(sonar_e) {
  if (D1read & 0x01) {
  if (D1 < 10) {
  PORTB |= 0x40;
@@ -269,13 +264,44 @@ void main() {
  motor1();
  motor2();
  }
+
+ if(servo_flag){
+ sonar_e = 0;
+ mspeed1 = 0;
+ mspeed2 = 0;
+ CCP2CON = 0x08;
+ T1CON = 0x01;
+ PIE2 |= 0x01;
+
+ if(toggle_servo == 0){
+ angle = 1000;
+ } else if(toggle_servo == 1) {
+ angle = 3000;
+ }
+
+ msDelay(5000);
+ servo_flag = 0;
+ sonar_e = 1;
+ }
+ }
 }
 
+void port_init(void){
+ TRISA = 0x0F;
+ PORTA = 0x00;
+ TRISB = 0x00;
+ PORTB = 0x00;
+ TRISC = 0x50;
+ PORTC = 0x00;
+ TRISD = 0x00;
+ PORTD = 0x00;
+ TRISE = 0x0F;
+ PORTE = 0x00;
+}
 
 void ATD_init(void) {
  ADCON0 = 0x41;
  ADCON1 = 0xC4;
- TRISE = 0x07;
 }
 
 
@@ -373,6 +399,7 @@ void CCPPWM_init(void) {
  CCP1CON = 0x0C;
  PR2 = 250;
  CCPR1L = 125;
+
  mspeed1 = 0;
  mspeed2 = 0;
  period = 0;

@@ -35,8 +35,13 @@ unsigned char HL;
 unsigned int angle;
 unsigned char sonar_e;
 unsigned char servo_e;
+////////////////////////////
+unsigned char servo_flag;
+unsigned char toggle_servo;
+////////////////////////////
 
 // Function Declarations
+void port_init(void);
 void ATD_init(void);            // Initialize ADC
 unsigned int ATD_read0(void);   // Read ADC channel AN0
 unsigned int ATD_read1(void);   // Read ADC channel AN1
@@ -54,38 +59,27 @@ void PWMusDelay(unsigned int);
 
 // Interrupt Service Routine
 void interrupt() {
-
-   //External Interrupt
-   if (INTCON&0x02){
-      if (!(PORTB & 0x01)) {
-         sonar_e = 0;
-         servo_e = 1;
-
+ /*////////////////////////////
+     if (INTCON&0x02){                    // external interrupt
+      if (!(PORTB & 0x01)) {              // if button is pressed
+         servo_flag = 1;                 // enable servo flag
+         toggle_servo = !toggle_servo;    //opposite value of toggle
       }
    INTCON=INTCON&0xFD;
    }
-
+  ////////////////////////////
 
     // PORTB Change Interrupt (Handles Button Presses)
     if (INTCON & 0x01) {
-        if (!(PORTB & 0x10)) {   // Check if RB5 (right turn button) is pressed
-            PORTB |= 0x04;      // Turn on RB2 (right turn signal)
-            rturn = 1;          // Set right turn flag
-        }
-        if (!(PORTB & 0x20)) {   // Check if RB6 (left turn button) is pressed
-            PORTB |= 0x08;      // Turn on RB3 (left turn signal)
-            lturn = 1;          // Set left turn flag
-        }
+
         INTCON &= 0xFE;          // Clear PORTB Change Interrupt flag
     }
-
+  */
     // Timer0 Overflow Interrupt (Handles Timing Events)
     if (INTCON & 0x04) {
         tick++;                  // Increment Timer0 counter (~32ms per increment)
         tick3++;                 // Increment hall sensor pulse counter
         tick4++;                 // Increment speed calculation counter
-        tick5++;                 // Increment ultrasonic sensor counter
-        //Mcntr += 32;
 
         // ADC Sampling Logic (~64ms interval)
         if (tick == 2) {
@@ -99,10 +93,24 @@ void interrupt() {
 
             // Control RB1 (LED or actuator) based on flex sensor thresholds
             if ((flexD0 > 34) || (flexD1 > 34)) {
-                PORTB |= 0x02;   // Turn on RB1
+                PORTD |= 0x03;
             } else {
-                PORTB &= 0xFD;   // Turn off RB1
+                PORTD &= 0xFC;
             }
+        }
+
+       if (!(PORTE & 0x01)) {   // Check if right turn button is pressed
+            PORTD |= 0x04;      // Turn on RD2 (right turn signal)
+            rturn = 1;          // Set right turn flag
+        }
+        if (!(PORTE & 0x02)) {   // Check if left turn button is pressed
+            PORTD |= 0x08;      // Turn on RD2 (left turn signal)
+            lturn = 1;          // Set left turn flag
+        }
+
+        if (!(PORTE & 0x04)) {             // if button is pressed
+         servo_flag = 1;                 // enable servo flag
+         toggle_servo = !toggle_servo;    //opposite value of toggle
         }
 
         // Right Turn Signal Logic
@@ -110,14 +118,14 @@ void interrupt() {
             tick1++;             // Increment right turn duration counter
             ticka++;             // Increment right turn blinking interval counter
 
-            if (ticka == 15) {   // Toggle RB2 (right turn signal) every ~480ms
+            if (ticka == 15) {   // Toggle(right turn signal) every ~480ms
                 ticka = 0;
-                PORTB ^= 0x04;   // Toggle RB2
+                PORTD ^= 0x04;   // Toggle RD1
             }
             if (tick1 == 150) {  // Stop right turn signal after ~5 seconds
                 tick1 = 0;
                 rturn = 0;
-                PORTB &= 0xFB;   // Turn off RB2
+                PORTD &= 0xFB;   // Turn off RD1
             }
         }
 
@@ -126,19 +134,20 @@ void interrupt() {
             tick2++;             // Increment left turn duration counter
             tickb++;             // Increment left turn blinking interval counter
 
-            if (tickb == 15) {   // Toggle RB3 (left turn signal) every ~480ms
+            if (tickb == 15) {   // Toggle (left turn signal) every ~480ms
                 tickb = 0;
-                PORTB ^= 0x08;   // Toggle RB3
+                PORTD ^= 0x08;   // Toggle RD2
             }
             if (tick2 == 150) {  // Stop left turn signal after ~5 seconds
                 tick2 = 0;
                 lturn = 0;
-                PORTB &= 0xF7;   // Turn off RB3
+                PORTD &= 0xF7;   // Turn off RD2
             }
         }
 
-        // Hall Sensor Pulse Counting (~224ms interval)
-        if (tick3 == 7) {
+
+        // Hall Sensor Pulse Counting (~64ms interval)
+        if (tick3 == 3) {
             tick3 = 0;
 
             // Read ADC value from hall sensor
@@ -167,6 +176,9 @@ void interrupt() {
 
         // Ultrasonic Sensor Trigger (~128ms interval)
         if (sonar_e) {
+        tick5++;
+        PIE2 &= 0xFE;   //disable CCP2 interrupt disable
+        T1CON = 0x18;
            if (tick5 == 4) {
               tick5 = 0;
               sonar_read1();        // Trigger ultrasonic sensor 1 reading
@@ -200,21 +212,14 @@ void interrupt() {
            TMR1H = 0;
            TMR1L = 0;
      }
-
      PIR2 &= 0xFE;
     }
 }
 
 // Main Function
 void main() {
-    // Configure Ports
-    TRISA = 0x0F;                 // Configure RA4 RA5 RA6 RA7 as output
-    PORTA = 0x00;                 // Initialize PORTA to LOW
-    TRISB = 0x31;                 // Configure RB0, RB4, RB5, RB6 as inputs
-    PORTB = 0x00;                 // Initialize PORTB to LOW
-    TRISC = 0x50;                 // Configure RC6 and RC4 as input
-    PORTC = 0x00;                 // Initialize PORTC to LOW
 
+    port_init();
     ATD_init();                  // Initialize ADC
     sonar_init();                // Initialize ultrasonic sensors
     CCPPWM_init();               // Initialize PWM for motors
@@ -222,15 +227,21 @@ void main() {
 
     // Configure Timer0
     OPTION_REG = 0x07;           // Oscillator clock/4, prescaler of 256
-    INTCON = 0xF8;               // Enable all interrupts
+    INTCON = 0xF0;               // Enable all interrupts
     TMR0 = 0;                    // Reset Timer0
 
     // Initialize Variables
     tick = tick1 = tick2 = tick3 = tick4 = ticka = tickb = pulse = 0;
+    ////////////////////////////
+    servo_flag = 0;
+    sonar_e = 1;
+    toggle_servo = 0;
+    ////////////////////////////
 
     // Main Loop
     while (1) {
         // Update motor 1 speed based on ultrasonic sensor 1 reading
+      if(sonar_e) {
         if (D1read & 0x01) {
             if (D1 < 10) {
                 PORTB |= 0x40;  // Turn on motor 1
@@ -268,13 +279,44 @@ void main() {
         motor1();               // Update motor 1
         motor2();               // Update motor 2
     }
+
+        if(servo_flag){
+            sonar_e = 0;         // disable sonar read
+            mspeed1 = 0;
+            mspeed2 = 0;
+            CCP2CON = 0x08;
+            T1CON = 0x01;              //change tmr1 prescaler to 1:1
+            PIE2 |= 0x01;
+
+            if(toggle_servo == 0){
+                angle = 1000;
+            } else if(toggle_servo == 1) {
+                angle = 3000;
+            }
+
+            msDelay(5000);             // delay 5 seconds
+            servo_flag = 0;            //disable sonar flag
+            sonar_e = 1;               // enable sonar read
+        }
+    }
 }
 
+void port_init(void){
+    TRISA = 0x0F;                 // Configure RA4 RA5 RA6 RA7 as output
+    PORTA = 0x00;                 // Initialize PORTA to LOW
+    TRISB = 0x00;                 // Configure RB0, RB4, RB5, RB6 as inputs
+    PORTB = 0x00;                 // Initialize PORTB to LOW
+    TRISC = 0x50;                 // Configure RC6 and RC4 as input                                                         v
+    PORTC = 0x00;                 // Initialize PORTC to LOW
+    TRISD = 0x00;
+    PORTD = 0x00;
+    TRISE = 0x0F;
+    PORTE = 0x00;
+}
 // ADC Initialization
 void ATD_init(void) {
     ADCON0 = 0x41;             // ADC ON, Don't GO, Channel 0, Fosc/16
     ADCON1 = 0xC4;             // AN0, AN1, AN3 analog channels; 500 KHz, right justified
-    TRISE = 0x07;              // Configure PORTE as input
 }
 
 // Read ADC value from channel 0
@@ -372,6 +414,7 @@ void CCPPWM_init(void) {
     CCP1CON = 0x0C;                  // Enable PWM for CCP1
     PR2 = 250;                       // Set Timer2 period
     CCPR1L = 125;                    // Initial duty cycle for CCP1 (50%)
+
     mspeed1 = 0;
     mspeed2 = 0;
     period = 0;
