@@ -35,10 +35,8 @@ unsigned char HL;
 unsigned int angle;
 unsigned char sonar_e;
 unsigned char servo_e;
-////////////////////////////
 unsigned char servo_flag;
 unsigned char toggle_servo;
-////////////////////////////
 
 // Function Declarations
 void port_init(void);
@@ -59,22 +57,7 @@ void PWMusDelay(unsigned int);
 
 // Interrupt Service Routine
 void interrupt() {
- /*////////////////////////////
-     if (INTCON&0x02){                    // external interrupt
-      if (!(PORTB & 0x01)) {              // if button is pressed
-         servo_flag = 1;                 // enable servo flag
-         toggle_servo = !toggle_servo;    //opposite value of toggle
-      }
-   INTCON=INTCON&0xFD;
-   }
-  ////////////////////////////
 
-    // PORTB Change Interrupt (Handles Button Presses)
-    if (INTCON & 0x01) {
-
-        INTCON &= 0xFE;          // Clear PORTB Change Interrupt flag
-    }
-  */
     // Timer0 Overflow Interrupt (Handles Timing Events)
     if (INTCON & 0x04) {
         tick++;                  // Increment Timer0 counter (~32ms per increment)
@@ -92,7 +75,7 @@ void interrupt() {
             flexD1 = (unsigned int)(flexA1 * 50) / 1023;  // Scale AN1 reading
 
             // Control RB1 (LED or actuator) based on flex sensor thresholds
-            if ((flexD0 > 34) || (flexD1 > 34)) {
+            if ((flexD0 > 23) || (flexD1 > 22 )){
                 PORTD |= 0x03;
             } else {
                 PORTD &= 0xFC;
@@ -176,9 +159,10 @@ void interrupt() {
 
         // Ultrasonic Sensor Trigger (~128ms interval)
         if (sonar_e) {
-        tick5++;
-        PIE2 &= 0xFE;   //disable CCP2 interrupt disable
-        T1CON = 0x18;
+           tick5++;
+           PIE2 &= 0xFE;   //disable CCP2 interrupt disable
+           T1CON = 0x18;
+        
            if (tick5 == 4) {
               tick5 = 0;
               sonar_read1();        // Trigger ultrasonic sensor 1 reading

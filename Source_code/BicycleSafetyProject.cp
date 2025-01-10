@@ -36,10 +36,8 @@ unsigned char HL;
 unsigned int angle;
 unsigned char sonar_e;
 unsigned char servo_e;
-
 unsigned char servo_flag;
 unsigned char toggle_servo;
-
 
 
 void port_init(void);
@@ -60,7 +58,8 @@ void PWMusDelay(unsigned int);
 
 
 void interrupt() {
-#line 79 "C:/Users/Hasnawi/Desktop/Uni/Y4S1/Embedded Systems/Project/Final Design/Bicycle-Safety-Project/Source_code/BicycleSafetyProject.c"
+
+
  if (INTCON & 0x04) {
  tick++;
  tick3++;
@@ -77,7 +76,7 @@ void interrupt() {
  flexD1 = (unsigned int)(flexA1 * 50) / 1023;
 
 
- if ((flexD0 > 34) || (flexD1 > 34)) {
+ if ((flexD0 > 23) || (flexD1 > 22)){
  PORTD |= 0x03;
  } else {
  PORTD &= 0xFC;
@@ -164,6 +163,7 @@ void interrupt() {
  tick5++;
  PIE2 &= 0xFE;
  T1CON = 0x18;
+
  if (tick5 == 4) {
  tick5 = 0;
  sonar_read1();
