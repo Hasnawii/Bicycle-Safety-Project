@@ -1,5 +1,24 @@
 #line 1 "C:/Users/Hasnawi/Desktop/Uni/Y4S1/Embedded Systems/Project/Final Design/Bicycle-Safety-Project/Source_code/BicycleSafetyProject.c"
 
+sbit LCD_RS at RB4_bit;
+sbit LCD_EN at RB5_bit;
+sbit LCD_D7 at RB3_bit;
+sbit LCD_D6 at RB2_bit;
+sbit LCD_D5 at RB1_bit;
+sbit LCD_D4 at RB0_bit;
+
+
+sbit LCD_RS_Direction at TRISB4_bit;
+sbit LCD_EN_Direction at TRISB5_bit;
+sbit LCD_D7_Direction at TRISB3_bit;
+sbit LCD_D6_Direction at TRISB2_bit;
+sbit LCD_D5_Direction at TRISB1_bit;
+sbit LCD_D4_Direction at TRISB0_bit;
+
+char txt1[] = "Speed:";
+char txt2[] = "m/s";
+
+
 unsigned char tick;
 unsigned char tick1;
 unsigned char tick2;
@@ -45,6 +64,7 @@ void ATD_init(void);
 unsigned int ATD_read0(void);
 unsigned int ATD_read1(void);
 unsigned int ATD_read2(void);
+void display_speed(unsigned int);
 void usDelay(unsigned int);
 void msDelay(unsigned int);
 void sonar_init(void);
@@ -76,7 +96,7 @@ void interrupt() {
  flexD1 = (unsigned int)(flexA1 * 50) / 1023;
 
 
- if ((flexD0 > 23) || (flexD1 > 22)){
+ if ((flexD0 > 23) || (flexD1 > 22 )){
  PORTD |= 0x03;
  } else {
  PORTD &= 0xFC;
@@ -94,7 +114,6 @@ void interrupt() {
 
  if (!(PORTE & 0x04)) {
  servo_flag = 1;
- toggle_servo = !toggle_servo;
  }
 
 
@@ -211,20 +230,29 @@ void main() {
  CCPcompare_init();
 
 
+ Lcd_Init();
+ Lcd_Cmd(_LCD_CLEAR);
+ Lcd_Cmd(_LCD_CURSOR_OFF);
+ Lcd_Out(1, 6, "Hasnawi");
+ Lcd_Out(2, 1, txt1);
+ Lcd_Out(2, 14, txt2);
+
+
  OPTION_REG = 0x07;
  INTCON = 0xF0;
  TMR0 = 0;
 
 
  tick = tick1 = tick2 = tick3 = tick4 = ticka = tickb = pulse = 0;
-
  servo_flag = 0;
  sonar_e = 1;
- toggle_servo = 0;
 
 
 
  while (1) {
+
+
+
 
  if(sonar_e) {
  if (D1read & 0x01) {
@@ -269,15 +297,14 @@ void main() {
  sonar_e = 0;
  mspeed1 = 0;
  mspeed2 = 0;
- CCP2CON = 0x08;
+ if(angle == 4000){
+ angle = 2000;
+ } else if(angle == 2000) {
+ angle = 4000;
+ }
+ CCP2CON =0x08;
  T1CON = 0x01;
  PIE2 |= 0x01;
-
- if(toggle_servo == 0){
- angle = 1000;
- } else if(toggle_servo == 1) {
- angle = 3000;
- }
 
  msDelay(5000);
  servo_flag = 0;
@@ -447,4 +474,25 @@ void msDelay(unsigned int msCnt) {
  for (ms = 0; ms < msCnt; ms++) {
  for (cc = 0; cc < 155; cc++);
  }
+}
+
+
+void display_speed(unsigned int speed) {
+ char buffer[4];
+
+
+ unsigned long int integer_part = speed / 100;
+ unsigned long int decimal_part = speed % 100;
+
+
+ buffer[0] = (integer_part) + '0';
+ buffer[1] = '.';
+
+
+ buffer[2] = (decimal_part / 10) + '0';
+ buffer[3] = (decimal_part % 10) + '0';
+ buffer[4] = '\0';
+
+
+ Lcd_Out(2, 8, buffer);
 }

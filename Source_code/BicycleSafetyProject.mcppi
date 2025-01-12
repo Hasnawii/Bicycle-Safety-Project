@@ -41,7 +41,9 @@ Count=0
 [PLDS]
 Count=0
 [Useses]
-Count=0
+File0=Lcd
+File1=Lcd_Constants
+Count=2
 [EXPANDED_NODES]
 0=BicycleSafetyProject.mcppi
 Count=1

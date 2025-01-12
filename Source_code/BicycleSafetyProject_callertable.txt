@@ -1,9 +1,28 @@
 main
+	__CC2DW
+		____DoICP
 	port_init
 	ATD_init
 	sonar_init
 	CCPPWM_init
 	CCPcompare_init
+	Lcd_Init
+		Delay_5500us
+		Delay_1us
+	Lcd_Cmd
+		Delay_1us
+		Delay_5500us
+		Delay_50us
+	Lcd_Out
+		Lcd_Cmd
+			Delay_1us
+			Delay_5500us
+			Delay_50us
+		Lcd_Chr_CP
+			Lcd_Cmd
+				Delay_1us
+				Delay_5500us
+				Delay_50us
 	motor1
 	motor2
 		PWMusDelay

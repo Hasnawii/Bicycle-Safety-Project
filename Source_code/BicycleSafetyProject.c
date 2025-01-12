@@ -1,3 +1,22 @@
+  // Lcd pinout settings
+sbit LCD_RS at RB4_bit;
+sbit LCD_EN at RB5_bit;
+sbit LCD_D7 at RB3_bit;
+sbit LCD_D6 at RB2_bit;
+sbit LCD_D5 at RB1_bit;
+sbit LCD_D4 at RB0_bit;
+
+// Pin direction
+sbit LCD_RS_Direction at TRISB4_bit;
+sbit LCD_EN_Direction at TRISB5_bit;
+sbit LCD_D7_Direction at TRISB3_bit;
+sbit LCD_D6_Direction at TRISB2_bit;
+sbit LCD_D5_Direction at TRISB1_bit;
+sbit LCD_D4_Direction at TRISB0_bit;
+
+char txt1[] = "Speed:";
+char txt2[] = "m/s";
+
 // Global Variables
 unsigned char tick;         // Timer0 interrupt counter, increments every 32ms
 unsigned char tick1;        // Counter for right turn signal duration (~5 seconds)
@@ -44,6 +63,7 @@ void ATD_init(void);            // Initialize ADC
 unsigned int ATD_read0(void);   // Read ADC channel AN0
 unsigned int ATD_read1(void);   // Read ADC channel AN1
 unsigned int ATD_read2(void);   // Read ADC channel AN2
+void display_speed(unsigned int);
 void usDelay(unsigned int);     // Microsecond delay function
 void msDelay(unsigned int);     // Millisecond delay function
 void sonar_init(void);          // Initialize ultrasonic sensors
@@ -93,7 +113,6 @@ void interrupt() {
 
         if (!(PORTE & 0x04)) {             // if button is pressed
          servo_flag = 1;                 // enable servo flag
-         toggle_servo = !toggle_servo;    //opposite value of toggle
         }
 
         // Right Turn Signal Logic
@@ -208,7 +227,15 @@ void main() {
     sonar_init();                // Initialize ultrasonic sensors
     CCPPWM_init();               // Initialize PWM for motors
     CCPcompare_init();
-
+    
+    // Initialize LCD
+    Lcd_Init();
+    Lcd_Cmd(_LCD_CLEAR);               // Clear display
+    Lcd_Cmd(_LCD_CURSOR_OFF);          // Cursor off
+    Lcd_Out(1, 6, "Hasnawi");
+    Lcd_Out(2, 1, txt1);
+    Lcd_Out(2, 14, txt2);
+    
     // Configure Timer0
     OPTION_REG = 0x07;           // Oscillator clock/4, prescaler of 256
     INTCON = 0xF0;               // Enable all interrupts
@@ -216,14 +243,15 @@ void main() {
 
     // Initialize Variables
     tick = tick1 = tick2 = tick3 = tick4 = ticka = tickb = pulse = 0;
-    ////////////////////////////
     servo_flag = 0;
     sonar_e = 1;
-    toggle_servo = 0;
-    ////////////////////////////
+
 
     // Main Loop
     while (1) {
+        
+       // display_speed(v);
+        
         // Update motor 1 speed based on ultrasonic sensor 1 reading
       if(sonar_e) {
         if (D1read & 0x01) {
@@ -268,15 +296,14 @@ void main() {
             sonar_e = 0;         // disable sonar read
             mspeed1 = 0;
             mspeed2 = 0;
-            CCP2CON = 0x08;
+            if(angle == 4000){
+                angle = 2000;
+            } else if(angle == 2000) {
+                angle = 4000;
+            }
+            CCP2CON =0x08;
             T1CON = 0x01;              //change tmr1 prescaler to 1:1
             PIE2 |= 0x01;
-
-            if(toggle_servo == 0){
-                angle = 1000;
-            } else if(toggle_servo == 1) {
-                angle = 3000;
-            }
 
             msDelay(5000);             // delay 5 seconds
             servo_flag = 0;            //disable sonar flag
@@ -446,4 +473,25 @@ void msDelay(unsigned int msCnt) {
     for (ms = 0; ms < msCnt; ms++) {
         for (cc = 0; cc < 155; cc++); // 1ms
     }
+}
+
+// Display Speed on LCD
+void display_speed(unsigned int speed) {
+    char buffer[4];
+
+    // Extract integer and decimal parts
+    unsigned long int integer_part = speed / 100;  // Integer part of speed
+    unsigned long int decimal_part = speed % 100; // Decimal part of speed
+
+    // Convert integer part to string
+    buffer[0] = (integer_part) + '0'; // Units digit
+    buffer[1] = '.';                  // Decimal point
+
+    // Convert decimal part to string
+    buffer[2] = (decimal_part / 10) + '0'; // Tenths digit
+    buffer[3] = (decimal_part % 10) + '0'; // Hundredths digit
+    buffer[4] = '\0';                      // Null terminator for string
+
+    // Display formatted speed on LCD
+    Lcd_Out(2, 8, buffer); // Display speed at row 2, column 8
 }
