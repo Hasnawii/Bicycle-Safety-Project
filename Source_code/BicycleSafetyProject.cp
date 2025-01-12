@@ -297,10 +297,10 @@ void main() {
  sonar_e = 0;
  mspeed1 = 0;
  mspeed2 = 0;
- if(angle == 4000){
- angle = 2000;
- } else if(angle == 2000) {
+ if(angle == 2000){
  angle = 4000;
+ } else if(angle == 4000) {
+ angle = 2000;
  }
  CCP2CON =0x08;
  T1CON = 0x01;
@@ -438,6 +438,7 @@ void CCPcompare_init(void){
  CCP2CON = 0x08;
  CCPR2H=2000>>8;
  CCPR2L=2000;
+ angle = 2000;
 }
 
 void motor1(void) {

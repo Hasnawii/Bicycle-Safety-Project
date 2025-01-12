@@ -712,37 +712,37 @@ L_main26:
 	CLRF       _mspeed1+0
 ;BicycleSafetyProject.c,298 :: 		mspeed2 = 0;
 	CLRF       _mspeed2+0
-;BicycleSafetyProject.c,299 :: 		if(angle == 4000){
+;BicycleSafetyProject.c,299 :: 		if(angle == 2000){
 	MOVF       _angle+1, 0
-	XORLW      15
+	XORLW      7
 	BTFSS      STATUS+0, 2
 	GOTO       L__main84
-	MOVLW      160
+	MOVLW      208
 	XORWF      _angle+0, 0
 L__main84:
 	BTFSS      STATUS+0, 2
 	GOTO       L_main42
-;BicycleSafetyProject.c,300 :: 		angle = 2000;
-	MOVLW      208
+;BicycleSafetyProject.c,300 :: 		angle = 4000;
+	MOVLW      160
 	MOVWF      _angle+0
-	MOVLW      7
+	MOVLW      15
 	MOVWF      _angle+1
-;BicycleSafetyProject.c,301 :: 		} else if(angle == 2000) {
+;BicycleSafetyProject.c,301 :: 		} else if(angle == 4000) {
 	GOTO       L_main43
 L_main42:
 	MOVF       _angle+1, 0
-	XORLW      7
+	XORLW      15
 	BTFSS      STATUS+0, 2
 	GOTO       L__main85
-	MOVLW      208
+	MOVLW      160
 	XORWF      _angle+0, 0
 L__main85:
 	BTFSS      STATUS+0, 2
 	GOTO       L_main44
-;BicycleSafetyProject.c,302 :: 		angle = 4000;
-	MOVLW      160
+;BicycleSafetyProject.c,302 :: 		angle = 2000;
+	MOVLW      208
 	MOVWF      _angle+0
-	MOVLW      15
+	MOVLW      7
 	MOVWF      _angle+1
 ;BicycleSafetyProject.c,303 :: 		}
 L_main44:
@@ -1291,28 +1291,33 @@ _CCPcompare_init:
 ;BicycleSafetyProject.c,439 :: 		CCPR2L=2000;
 	MOVLW      208
 	MOVWF      CCPR2L+0
-;BicycleSafetyProject.c,440 :: 		}
+;BicycleSafetyProject.c,440 :: 		angle = 2000;
+	MOVLW      208
+	MOVWF      _angle+0
+	MOVLW      7
+	MOVWF      _angle+1
+;BicycleSafetyProject.c,441 :: 		}
 L_end_CCPcompare_init:
 	RETURN
 ; end of _CCPcompare_init
 
 _motor1:
 
-;BicycleSafetyProject.c,442 :: 		void motor1(void) {
-;BicycleSafetyProject.c,443 :: 		CCPR1L = mspeed1;                // Set PWM duty cycle for motor 1
+;BicycleSafetyProject.c,443 :: 		void motor1(void) {
+;BicycleSafetyProject.c,444 :: 		CCPR1L = mspeed1;                // Set PWM duty cycle for motor 1
 	MOVF       _mspeed1+0, 0
 	MOVWF      CCPR1L+0
-;BicycleSafetyProject.c,444 :: 		}
+;BicycleSafetyProject.c,445 :: 		}
 L_end_motor1:
 	RETURN
 ; end of _motor1
 
 _motor2:
 
-;BicycleSafetyProject.c,447 :: 		void motor2(void) {
-;BicycleSafetyProject.c,448 :: 		PORTB |= 0x80;                       //High
+;BicycleSafetyProject.c,448 :: 		void motor2(void) {
+;BicycleSafetyProject.c,449 :: 		PORTB |= 0x80;                       //High
 	BSF        PORTB+0, 7
-;BicycleSafetyProject.c,449 :: 		PWMusDelay(mspeed2*2);
+;BicycleSafetyProject.c,450 :: 		PWMusDelay(mspeed2*2);
 	MOVF       _mspeed2+0, 0
 	MOVWF      FARG_PWMusDelay+0
 	CLRF       FARG_PWMusDelay+1
@@ -1320,10 +1325,10 @@ _motor2:
 	RLF        FARG_PWMusDelay+1, 1
 	BCF        FARG_PWMusDelay+0, 0
 	CALL       _PWMusDelay+0
-;BicycleSafetyProject.c,450 :: 		PORTB &= 0x7F;                       //Low
+;BicycleSafetyProject.c,451 :: 		PORTB &= 0x7F;                       //Low
 	MOVLW      127
 	ANDWF      PORTB+0, 1
-;BicycleSafetyProject.c,451 :: 		PWMusDelay((250-mspeed2)*2);
+;BicycleSafetyProject.c,452 :: 		PWMusDelay((250-mspeed2)*2);
 	MOVF       _mspeed2+0, 0
 	SUBLW      250
 	MOVWF      FARG_PWMusDelay+0
@@ -1334,15 +1339,15 @@ _motor2:
 	RLF        FARG_PWMusDelay+1, 1
 	BCF        FARG_PWMusDelay+0, 0
 	CALL       _PWMusDelay+0
-;BicycleSafetyProject.c,452 :: 		}
+;BicycleSafetyProject.c,453 :: 		}
 L_end_motor2:
 	RETURN
 ; end of _motor2
 
 _usDelay:
 
-;BicycleSafetyProject.c,455 :: 		void usDelay(unsigned int usCnt) {
-;BicycleSafetyProject.c,457 :: 		for (us = 0; us < usCnt; us++) {
+;BicycleSafetyProject.c,456 :: 		void usDelay(unsigned int usCnt) {
+;BicycleSafetyProject.c,458 :: 		for (us = 0; us < usCnt; us++) {
 	CLRF       R1+0
 	CLRF       R1+1
 L_usDelay59:
@@ -1355,26 +1360,26 @@ L_usDelay59:
 L__usDelay99:
 	BTFSC      STATUS+0, 0
 	GOTO       L_usDelay60
-;BicycleSafetyProject.c,458 :: 		asm NOP;                     // 0.5 uS
-	NOP
 ;BicycleSafetyProject.c,459 :: 		asm NOP;                     // 0.5 uS
 	NOP
-;BicycleSafetyProject.c,457 :: 		for (us = 0; us < usCnt; us++) {
+;BicycleSafetyProject.c,460 :: 		asm NOP;                     // 0.5 uS
+	NOP
+;BicycleSafetyProject.c,458 :: 		for (us = 0; us < usCnt; us++) {
 	INCF       R1+0, 1
 	BTFSC      STATUS+0, 2
 	INCF       R1+1, 1
-;BicycleSafetyProject.c,460 :: 		}
+;BicycleSafetyProject.c,461 :: 		}
 	GOTO       L_usDelay59
 L_usDelay60:
-;BicycleSafetyProject.c,461 :: 		}
+;BicycleSafetyProject.c,462 :: 		}
 L_end_usDelay:
 	RETURN
 ; end of _usDelay
 
 _PWMusDelay:
 
-;BicycleSafetyProject.c,463 :: 		void PWMusDelay(unsigned int PWMusCnt) {
-;BicycleSafetyProject.c,465 :: 		for (PWMus = 0; PWMus < PWMusCnt; PWMus++) {
+;BicycleSafetyProject.c,464 :: 		void PWMusDelay(unsigned int PWMusCnt) {
+;BicycleSafetyProject.c,466 :: 		for (PWMus = 0; PWMus < PWMusCnt; PWMus++) {
 	CLRF       R1+0
 	CLRF       R1+1
 L_PWMusDelay62:
@@ -1387,26 +1392,26 @@ L_PWMusDelay62:
 L__PWMusDelay101:
 	BTFSC      STATUS+0, 0
 	GOTO       L_PWMusDelay63
-;BicycleSafetyProject.c,466 :: 		asm NOP;                     // 0.5 uS
-	NOP
 ;BicycleSafetyProject.c,467 :: 		asm NOP;                     // 0.5 uS
 	NOP
-;BicycleSafetyProject.c,465 :: 		for (PWMus = 0; PWMus < PWMusCnt; PWMus++) {
+;BicycleSafetyProject.c,468 :: 		asm NOP;                     // 0.5 uS
+	NOP
+;BicycleSafetyProject.c,466 :: 		for (PWMus = 0; PWMus < PWMusCnt; PWMus++) {
 	INCF       R1+0, 1
 	BTFSC      STATUS+0, 2
 	INCF       R1+1, 1
-;BicycleSafetyProject.c,468 :: 		}
+;BicycleSafetyProject.c,469 :: 		}
 	GOTO       L_PWMusDelay62
 L_PWMusDelay63:
-;BicycleSafetyProject.c,469 :: 		}
+;BicycleSafetyProject.c,470 :: 		}
 L_end_PWMusDelay:
 	RETURN
 ; end of _PWMusDelay
 
 _msDelay:
 
-;BicycleSafetyProject.c,471 :: 		void msDelay(unsigned int msCnt) {
-;BicycleSafetyProject.c,473 :: 		for (ms = 0; ms < msCnt; ms++) {
+;BicycleSafetyProject.c,472 :: 		void msDelay(unsigned int msCnt) {
+;BicycleSafetyProject.c,474 :: 		for (ms = 0; ms < msCnt; ms++) {
 	CLRF       R1+0
 	CLRF       R1+1
 L_msDelay65:
@@ -1419,7 +1424,7 @@ L_msDelay65:
 L__msDelay103:
 	BTFSC      STATUS+0, 0
 	GOTO       L_msDelay66
-;BicycleSafetyProject.c,474 :: 		for (cc = 0; cc < 155; cc++); // 1ms
+;BicycleSafetyProject.c,475 :: 		for (cc = 0; cc < 155; cc++); // 1ms
 	CLRF       R3+0
 	CLRF       R3+1
 L_msDelay68:
@@ -1437,22 +1442,22 @@ L__msDelay104:
 	INCF       R3+1, 1
 	GOTO       L_msDelay68
 L_msDelay69:
-;BicycleSafetyProject.c,473 :: 		for (ms = 0; ms < msCnt; ms++) {
+;BicycleSafetyProject.c,474 :: 		for (ms = 0; ms < msCnt; ms++) {
 	INCF       R1+0, 1
 	BTFSC      STATUS+0, 2
 	INCF       R1+1, 1
-;BicycleSafetyProject.c,475 :: 		}
+;BicycleSafetyProject.c,476 :: 		}
 	GOTO       L_msDelay65
 L_msDelay66:
-;BicycleSafetyProject.c,476 :: 		}
+;BicycleSafetyProject.c,477 :: 		}
 L_end_msDelay:
 	RETURN
 ; end of _msDelay
 
 _display_speed:
 
-;BicycleSafetyProject.c,479 :: 		void display_speed(unsigned int speed) {
-;BicycleSafetyProject.c,483 :: 		unsigned long int integer_part = speed / 100;  // Integer part of speed
+;BicycleSafetyProject.c,480 :: 		void display_speed(unsigned int speed) {
+;BicycleSafetyProject.c,484 :: 		unsigned long int integer_part = speed / 100;  // Integer part of speed
 	MOVLW      100
 	MOVWF      R4+0
 	MOVLW      0
@@ -1468,7 +1473,7 @@ _display_speed:
 	MOVWF      display_speed_integer_part_L0+1
 	CLRF       display_speed_integer_part_L0+2
 	CLRF       display_speed_integer_part_L0+3
-;BicycleSafetyProject.c,484 :: 		unsigned long int decimal_part = speed % 100; // Decimal part of speed
+;BicycleSafetyProject.c,485 :: 		unsigned long int decimal_part = speed % 100; // Decimal part of speed
 	MOVLW      100
 	MOVWF      R4+0
 	MOVLW      0
@@ -1488,16 +1493,16 @@ _display_speed:
 	MOVWF      display_speed_decimal_part_L0+1
 	CLRF       display_speed_decimal_part_L0+2
 	CLRF       display_speed_decimal_part_L0+3
-;BicycleSafetyProject.c,487 :: 		buffer[0] = (integer_part) + '0'; // Units digit
+;BicycleSafetyProject.c,488 :: 		buffer[0] = (integer_part) + '0'; // Units digit
 	MOVLW      48
 	ADDWF      display_speed_integer_part_L0+0, 0
 	MOVWF      R0+0
 	MOVF       R0+0, 0
 	MOVWF      display_speed_buffer_L0+0
-;BicycleSafetyProject.c,488 :: 		buffer[1] = '.';                  // Decimal point
+;BicycleSafetyProject.c,489 :: 		buffer[1] = '.';                  // Decimal point
 	MOVLW      46
 	MOVWF      display_speed_buffer_L0+1
-;BicycleSafetyProject.c,491 :: 		buffer[2] = (decimal_part / 10) + '0'; // Tenths digit
+;BicycleSafetyProject.c,492 :: 		buffer[2] = (decimal_part / 10) + '0'; // Tenths digit
 	MOVLW      10
 	MOVWF      R4+0
 	CLRF       R4+1
@@ -1515,7 +1520,7 @@ _display_speed:
 	MOVLW      48
 	ADDWF      R0+0, 0
 	MOVWF      display_speed_buffer_L0+2
-;BicycleSafetyProject.c,492 :: 		buffer[3] = (decimal_part % 10) + '0'; // Hundredths digit
+;BicycleSafetyProject.c,493 :: 		buffer[3] = (decimal_part % 10) + '0'; // Hundredths digit
 	MOVLW      10
 	MOVWF      R4+0
 	CLRF       R4+1
@@ -1541,9 +1546,9 @@ _display_speed:
 	MOVLW      48
 	ADDWF      R0+0, 0
 	MOVWF      display_speed_buffer_L0+3
-;BicycleSafetyProject.c,493 :: 		buffer[4] = '\0';                      // Null terminator for string
+;BicycleSafetyProject.c,494 :: 		buffer[4] = '\0';                      // Null terminator for string
 	CLRF       display_speed_buffer_L0+4
-;BicycleSafetyProject.c,496 :: 		Lcd_Out(2, 8, buffer); // Display speed at row 2, column 8
+;BicycleSafetyProject.c,497 :: 		Lcd_Out(2, 8, buffer); // Display speed at row 2, column 8
 	MOVLW      2
 	MOVWF      FARG_Lcd_Out_row+0
 	MOVLW      8
@@ -1551,7 +1556,7 @@ _display_speed:
 	MOVLW      display_speed_buffer_L0+0
 	MOVWF      FARG_Lcd_Out_text+0
 	CALL       _Lcd_Out+0
-;BicycleSafetyProject.c,497 :: 		}
+;BicycleSafetyProject.c,498 :: 		}
 L_end_display_speed:
 	RETURN
 ; end of _display_speed
