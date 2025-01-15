@@ -16,14 +16,16 @@ sbit LCD_D5_Direction at TRISB1_bit;
 sbit LCD_D4_Direction at TRISB0_bit;
 
 char txt1[] = "Speed:";
-char txt2[] = "m/s";
+char txt2[] = "km/hr";
+
+char txt[7];
 
 
 unsigned char tick;
-unsigned char tick1;
-unsigned char tick2;
+unsigned int tick1;
+unsigned int tick2;
 unsigned char tick3;
-unsigned char tick4;
+unsigned int tick4;
 unsigned char tick5;
 unsigned char ticka;
 unsigned char tickb;
@@ -36,8 +38,8 @@ unsigned int flexD1;
 unsigned int hallA2;
 unsigned int hallD2;
 unsigned int pulse;
-unsigned long dis;
-unsigned long v;
+unsigned int rpm;
+unsigned int v;
 unsigned int T1overflow;
 unsigned long T1counts;
 unsigned long T1time;
@@ -55,8 +57,11 @@ unsigned char HL;
 unsigned int angle;
 unsigned char sonar_e;
 unsigned char servo_e;
-unsigned char servo_flag;
-unsigned char toggle_servo;
+
+char buffer[2];
+unsigned int one;
+unsigned int ten;
+unsigned int tenth;
 
 
 void port_init(void);
@@ -64,8 +69,8 @@ void ATD_init(void);
 unsigned int ATD_read0(void);
 unsigned int ATD_read1(void);
 unsigned int ATD_read2(void);
-void display_speed(unsigned int);
 void usDelay(unsigned int);
+void PWMusDelay(unsigned int);
 void msDelay(unsigned int);
 void sonar_init(void);
 void sonar_read1(void);
@@ -74,7 +79,7 @@ void CCPPWM_init(void);
 void CCPcompare_init(void);
 void motor1(void);
 void motor2(void);
-void PWMusDelay(unsigned int);
+
 
 
 void interrupt() {
@@ -113,7 +118,7 @@ void interrupt() {
  }
 
  if (!(PORTE & 0x04)) {
- servo_flag = 1;
+ servo_e = 1;
  }
 
 
@@ -121,7 +126,7 @@ void interrupt() {
  tick1++;
  ticka++;
 
- if (ticka == 15) {
+ if (ticka == 7) {
  ticka = 0;
  PORTD ^= 0x04;
  }
@@ -137,7 +142,7 @@ void interrupt() {
  tick2++;
  tickb++;
 
- if (tickb == 15) {
+ if (tickb == 7) {
  tickb = 0;
  PORTD ^= 0x08;
  }
@@ -147,36 +152,16 @@ void interrupt() {
  PORTD &= 0xF7;
  }
  }
-
-
-
- if (tick3 == 3) {
- tick3 = 0;
-
-
- hallA2 = ATD_read2();
- hallD2 = (unsigned int)(hallA2 * 50) / 1023;
-
-
- if (hallD2 > 10) {
+ if (PORTD & 0x10) {
  pulse++;
  }
- }
 
-
- if (tick4 == 219) {
+ if (tick4 == 312) {
  tick4 = 0;
-
-
- dis = (unsigned long)(314 * 35 * pulse) / 2;
-
-
- v = (unsigned long) dis / 700;
-
-
+ rpm = (pulse*6)/4;
+ v = rpm * 0.13;
  pulse = 0;
  }
-
 
  if (sonar_e) {
  tick5++;
@@ -233,40 +218,37 @@ void main() {
  Lcd_Init();
  Lcd_Cmd(_LCD_CLEAR);
  Lcd_Cmd(_LCD_CURSOR_OFF);
- Lcd_Out(1, 6, "Hasnawi");
+ Lcd_Out(1, 5, "PSUT BSS");
  Lcd_Out(2, 1, txt1);
- Lcd_Out(2, 14, txt2);
+ Lcd_Out(2, 12, txt2);
 
 
  OPTION_REG = 0x07;
- INTCON = 0xF0;
+ INTCON = 0xE0;
  TMR0 = 0;
 
 
- tick = tick1 = tick2 = tick3 = tick4 = ticka = tickb = pulse = 0;
- servo_flag = 0;
+ v = tick = tick1 = tick2 = tick3 = tick4 = tick5 = ticka = tickb = pulse = rpm = 0;
+ servo_e = 0;
  sonar_e = 1;
 
 
 
  while (1) {
 
-
-
-
  if(sonar_e) {
  if (D1read & 0x01) {
  if (D1 < 10) {
- PORTB |= 0x40;
+ PORTD |= 0x40;
  mspeed1 = 250;
  } else if (D1 < 30) {
- PORTB |= 0x40;
+ PORTD |= 0x40;
  mspeed1 = 200;
  } else if (D1 < 50) {
- PORTB |= 0x40;
+ PORTD |= 0x40;
  mspeed1 = 175;
  } else {
- PORTB &= 0xBF;
+ PORTD &= 0xBF;
  mspeed1 = 0;
  }
  D1read = 0x00;
@@ -292,8 +274,7 @@ void main() {
  motor1();
  motor2();
  }
-
- if(servo_flag){
+ if(servo_e){
  sonar_e = 0;
  mspeed1 = 0;
  mspeed2 = 0;
@@ -306,10 +287,15 @@ void main() {
  T1CON = 0x01;
  PIE2 |= 0x01;
 
- msDelay(5000);
- servo_flag = 0;
+ msDelay(2000);
+ servo_e = 0;
  sonar_e = 1;
  }
+
+
+ sprintl(&buffer, "%d", v);
+ Lcd_Out(2, 8, buffer);
+
  }
 }
 
@@ -320,7 +306,7 @@ void port_init(void){
  PORTB = 0x00;
  TRISC = 0x50;
  PORTC = 0x00;
- TRISD = 0x00;
+ TRISD = 0x10;
  PORTD = 0x00;
  TRISE = 0x0F;
  PORTE = 0x00;
@@ -349,8 +335,7 @@ unsigned int ATD_read1(void) {
  return ((ADRESH << 8) | ADRESL);
 }
 
-
-unsigned int ATD_read2(void) {
+unsigned int ATD_read2 (void) {
  ADCON0 = (ADCON0 & 0xDF) | 0x18;
  usDelay(10);
  ADCON0 |= 0x04;
@@ -447,9 +432,9 @@ void motor1(void) {
 
 
 void motor2(void) {
- PORTB |= 0x80;
+ PORTD |= 0x80;
  PWMusDelay(mspeed2*2);
- PORTB &= 0x7F;
+ PORTD &= 0x7F;
  PWMusDelay((250-mspeed2)*2);
 }
 
@@ -470,30 +455,10 @@ void PWMusDelay(unsigned int PWMusCnt) {
  }
 }
 
+
 void msDelay(unsigned int msCnt) {
  unsigned int ms, cc;
  for (ms = 0; ms < msCnt; ms++) {
  for (cc = 0; cc < 155; cc++);
  }
-}
-
-
-void display_speed(unsigned int speed) {
- char buffer[4];
-
-
- unsigned long int integer_part = speed / 100;
- unsigned long int decimal_part = speed % 100;
-
-
- buffer[0] = (integer_part) + '0';
- buffer[1] = '.';
-
-
- buffer[2] = (decimal_part / 10) + '0';
- buffer[3] = (decimal_part % 10) + '0';
- buffer[4] = '\0';
-
-
- Lcd_Out(2, 8, buffer);
 }

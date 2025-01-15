@@ -43,7 +43,9 @@ Count=0
 [Useses]
 File0=Lcd
 File1=Lcd_Constants
-Count=2
+File2=Sprintl
+File3=C_Type
+Count=4
 [EXPANDED_NODES]
 0=BicycleSafetyProject.mcppi
 Count=1

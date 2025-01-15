@@ -1,4 +1,4 @@
-  // Lcd pinout settings
+// Lcd pinout settings
 sbit LCD_RS at RB4_bit;
 sbit LCD_EN at RB5_bit;
 sbit LCD_D7 at RB3_bit;
@@ -15,14 +15,16 @@ sbit LCD_D5_Direction at TRISB1_bit;
 sbit LCD_D4_Direction at TRISB0_bit;
 
 char txt1[] = "Speed:";
-char txt2[] = "m/s";
+char txt2[] = "km/hr";
+
+char txt[7];
 
 // Global Variables
 unsigned char tick;         // Timer0 interrupt counter, increments every 32ms
-unsigned char tick1;        // Counter for right turn signal duration (~5 seconds)
-unsigned char tick2;        // Counter for left turn signal duration (~5 seconds)
+unsigned int tick1;        // Counter for right turn signal duration (~5 seconds)
+unsigned int tick2;        // Counter for left turn signal duration (~5 seconds)
 unsigned char tick3;        // Counter for hall sensor pulse detection (~224ms per increment)
-unsigned char tick4;        // Counter for speed calculation interval (~7 seconds)
+unsigned int tick4;        // Counter for speed calculation interval (~7 seconds)
 unsigned char tick5;        // Counter for ultrasonic sonar reading (~128ms interval)
 unsigned char ticka;        // Counter for right turn signal blinking interval (~480ms)
 unsigned char tickb;        // Counter for left turn signal blinking interval (~480ms)
@@ -32,11 +34,11 @@ unsigned int flexA0;        // Raw ADC value from channel AN0 (e.g., flex sensor
 unsigned int flexA1;        // Raw ADC value from channel AN1 (e.g., flex sensor)
 unsigned int flexD0;        // Scaled ADC value from AN0 (percentage-like, 0-50)
 unsigned int flexD1;        // Scaled ADC value from AN1 (percentage-like, 0-50)
-unsigned int hallA2;        // Raw ADC value from channel AN2 (e.g., hall sensor)
-unsigned int hallD2;        // Scaled ADC value from AN2 (percentage-like, 0-50)
+unsigned int hallA2;        // Raw ADC value from channel AN3 (e.g., hall sensor)
+unsigned int hallD2;        // Scaled ADC value from AN3 (percentage-like, 0-50)
 unsigned int pulse;         // Count of hall sensor pulses (for speed/distance calculation)
-unsigned long dis;          // Distance traveled in cm, scaled by 100 for precision
-unsigned long v;            // Speed in cm/s, scaled by 100 (actual speed = v / 100)
+unsigned int rpm;
+unsigned int v;            // Speed in cm/s, scaled by 100 (actual speed = v / 100)
 unsigned int T1overflow;    // Timer1 overflow count for ultrasonic sensor 1
 unsigned long T1counts;     // Total Timer1 counts (32 bits) for ultrasonic sensor 1
 unsigned long T1time;       // Echo time in microseconds for ultrasonic sensor 1
@@ -54,17 +56,20 @@ unsigned char HL;
 unsigned int angle;
 unsigned char sonar_e;
 unsigned char servo_e;
-unsigned char servo_flag;
-unsigned char toggle_servo;
+
+char buffer[2];
+unsigned int one;
+unsigned int ten;
+unsigned int tenth;
 
 // Function Declarations
 void port_init(void);
 void ATD_init(void);            // Initialize ADC
 unsigned int ATD_read0(void);   // Read ADC channel AN0
 unsigned int ATD_read1(void);   // Read ADC channel AN1
-unsigned int ATD_read2(void);   // Read ADC channel AN2
-void display_speed(unsigned int);
+unsigned int ATD_read2(void);   // Read ADC channel AN3
 void usDelay(unsigned int);     // Microsecond delay function
+void PWMusDelay(unsigned int);
 void msDelay(unsigned int);     // Millisecond delay function
 void sonar_init(void);          // Initialize ultrasonic sensors
 void sonar_read1(void);         // Read ultrasonic sensor 1
@@ -73,7 +78,7 @@ void CCPPWM_init(void);         // Initialize CCP for PWM generation
 void CCPcompare_init(void);
 void motor1(void);              // Update motor 1 speed
 void motor2(void);              // Update motor 2 speed
-void PWMusDelay(unsigned int);
+
 
 // Interrupt Service Routine
 void interrupt() {
@@ -112,7 +117,7 @@ void interrupt() {
         }
 
         if (!(PORTE & 0x04)) {             // if button is pressed
-         servo_flag = 1;                 // enable servo flag
+         servo_e = 1;                 // enable servo flag
         }
 
         // Right Turn Signal Logic
@@ -120,7 +125,7 @@ void interrupt() {
             tick1++;             // Increment right turn duration counter
             ticka++;             // Increment right turn blinking interval counter
 
-            if (ticka == 15) {   // Toggle(right turn signal) every ~480ms
+            if (ticka == 7) {   // Toggle(right turn signal) every ~240ms
                 ticka = 0;
                 PORTD ^= 0x04;   // Toggle RD1
             }
@@ -136,56 +141,36 @@ void interrupt() {
             tick2++;             // Increment left turn duration counter
             tickb++;             // Increment left turn blinking interval counter
 
-            if (tickb == 15) {   // Toggle (left turn signal) every ~480ms
+            if (tickb == 7) {   // Toggle (left turn signal) every ~240ms
                 tickb = 0;
                 PORTD ^= 0x08;   // Toggle RD2
             }
-            if (tick2 == 150) {  // Stop left turn signal after ~5 seconds
+            if (tick2 == 150) {  // Stop left turn signal after  seconds
                 tick2 = 0;
                 lturn = 0;
                 PORTD &= 0xF7;   // Turn off RD2
             }
         }
-
-
-        // Hall Sensor Pulse Counting (~64ms interval)
-        if (tick3 == 3) {
-            tick3 = 0;
-
-            // Read ADC value from hall sensor
-            hallA2 = ATD_read2();
-            hallD2 = (unsigned int)(hallA2 * 50) / 1023;
-
-            // Increment pulse counter if hall sensor threshold is exceeded
-            if (hallD2 > 10) {
-                pulse++;
-            }
+        if (PORTD & 0x10) {
+           pulse++;
         }
-
-        // Speed and Distance Calculation (~7 seconds)
-        if (tick4 == 219) {
+        // Speed and Distance Calculation (~20 seconds)
+        if (tick4 == 312) {
             tick4 = 0;
-
-            // Calculate distance in cm (scaled by 100)
-            dis = (unsigned long)(314 * 35 * pulse) / 2;
-
-            // Calculate speed in cm/s (scaled by 100)
-            v = (unsigned long) dis / 700;
-
-            // Reset pulse counter for next calculation interval
+            rpm = (pulse*6)/4;
+            v = rpm * 0.13;
             pulse = 0;
         }
-
         // Ultrasonic Sensor Trigger (~128ms interval)
         if (sonar_e) {
            tick5++;
-           PIE2 &= 0xFE;   //disable CCP2 interrupt disable
+           PIE2 &= 0xFE;   //disable CCP2 interrupt
            T1CON = 0x18;
-        
+
            if (tick5 == 4) {
               tick5 = 0;
-              sonar_read1();        // Trigger ultrasonic sensor 1 reading
-              sonar_read2();        // Trigger ultrasonic sensor 2 reading
+             sonar_read1();        // Trigger ultrasonic sensor 1 reading
+             sonar_read2();        // Trigger ultrasonic sensor 2 reading
            }
         }
 
@@ -227,45 +212,42 @@ void main() {
     sonar_init();                // Initialize ultrasonic sensors
     CCPPWM_init();               // Initialize PWM for motors
     CCPcompare_init();
-    
+
     // Initialize LCD
     Lcd_Init();
     Lcd_Cmd(_LCD_CLEAR);               // Clear display
     Lcd_Cmd(_LCD_CURSOR_OFF);          // Cursor off
-    Lcd_Out(1, 6, "Hasnawi");
+    Lcd_Out(1, 5, "PSUT BSS");
     Lcd_Out(2, 1, txt1);
-    Lcd_Out(2, 14, txt2);
-    
+    Lcd_Out(2, 12, txt2);
+
     // Configure Timer0
     OPTION_REG = 0x07;           // Oscillator clock/4, prescaler of 256
-    INTCON = 0xF0;               // Enable all interrupts
+    INTCON = 0xE0;               // Enable all interrupts
     TMR0 = 0;                    // Reset Timer0
 
     // Initialize Variables
-    tick = tick1 = tick2 = tick3 = tick4 = ticka = tickb = pulse = 0;
-    servo_flag = 0;
+    v = tick = tick1 = tick2 = tick3 = tick4 = tick5 = ticka = tickb = pulse = rpm = 0;
+    servo_e = 0;
     sonar_e = 1;
 
 
     // Main Loop
     while (1) {
-        
-       // display_speed(v);
-        
-        // Update motor 1 speed based on ultrasonic sensor 1 reading
+    // Update motor 1 speed based on ultrasonic sensor 1 reading
       if(sonar_e) {
         if (D1read & 0x01) {
             if (D1 < 10) {
-                PORTB |= 0x40;  // Turn on motor 1
+                PORTD |= 0x40;  // Turn on motor 1
                 mspeed1 = 250;  // Set high speed
             } else if (D1 < 30) {
-                PORTB |= 0x40;   // Maintain motor 1
+                PORTD |= 0x40;   // Maintain motor 1
                 mspeed1 = 200;  // Set medium speed
             } else if (D1 < 50) {
-                PORTB |= 0x40;   // Maintain motor 1
+                PORTD |= 0x40;   // Maintain motor 1
                 mspeed1 = 175;  // Set low speed
             } else {
-                PORTB &= 0xBF;   // Turn off motor 1
+                PORTD &= 0xBF;   // Turn off motor 1
                 mspeed1 = 0;     // Stop motor
             }
             D1read = 0x00;       // Clear read flag for sensor 1
@@ -291,8 +273,7 @@ void main() {
         motor1();               // Update motor 1
         motor2();               // Update motor 2
     }
-
-        if(servo_flag){
+    if(servo_e){
             sonar_e = 0;         // disable sonar read
             mspeed1 = 0;
             mspeed2 = 0;
@@ -305,10 +286,15 @@ void main() {
             T1CON = 0x01;              //change tmr1 prescaler to 1:1
             PIE2 |= 0x01;
 
-            msDelay(5000);             // delay 5 seconds
-            servo_flag = 0;            //disable sonar flag
+            msDelay(2000);             // delay 5 seconds
+            servo_e = 0;            //disable sonar flag
             sonar_e = 1;               // enable sonar read
         }
+    //ten = v/10;
+    //one = v%10;
+    sprintl(&buffer, "%d", v);
+    Lcd_Out(2, 8, buffer);
+
     }
 }
 
@@ -319,7 +305,7 @@ void port_init(void){
     PORTB = 0x00;                 // Initialize PORTB to LOW
     TRISC = 0x50;                 // Configure RC6 and RC4 as input                                                         v
     PORTC = 0x00;                 // Initialize PORTC to LOW
-    TRISD = 0x00;
+    TRISD = 0x10;
     PORTD = 0x00;
     TRISE = 0x0F;
     PORTE = 0x00;
@@ -348,8 +334,7 @@ unsigned int ATD_read1(void) {
     return ((ADRESH << 8) | ADRESL);
 }
 
-// Read ADC value from channel 2
-unsigned int ATD_read2(void) {
+unsigned int ATD_read2 (void) {
     ADCON0 = (ADCON0 & 0xDF) | 0x18;  // Select channel 3
     usDelay(10);                      // Stabilize ADC input
     ADCON0 |= 0x04;                   // Start ADC conversion
@@ -446,9 +431,9 @@ void motor1(void) {
 
 // Update Motor 2 Speed
 void motor2(void) {
-     PORTB |= 0x80;                       //High
+     PORTD |= 0x80;                       //High
      PWMusDelay(mspeed2*2);
-     PORTB &= 0x7F;                       //Low
+     PORTD &= 0x7F;                       //Low
      PWMusDelay((250-mspeed2)*2);
 }
 
@@ -468,31 +453,11 @@ void PWMusDelay(unsigned int PWMusCnt) {
         asm NOP;                     // 0.5 uS
     }
 }
+
 // Millisecond Delay
 void msDelay(unsigned int msCnt) {
     unsigned int ms, cc;
     for (ms = 0; ms < msCnt; ms++) {
         for (cc = 0; cc < 155; cc++); // 1ms
     }
-}
-
-// Display Speed on LCD
-void display_speed(unsigned int speed) {
-    char buffer[4];
-
-    // Extract integer and decimal parts
-    unsigned long int integer_part = speed / 100;  // Integer part of speed
-    unsigned long int decimal_part = speed % 100; // Decimal part of speed
-
-    // Convert integer part to string
-    buffer[0] = (integer_part) + '0'; // Units digit
-    buffer[1] = '.';                  // Decimal point
-
-    // Convert decimal part to string
-    buffer[2] = (decimal_part / 10) + '0'; // Tenths digit
-    buffer[3] = (decimal_part % 10) + '0'; // Hundredths digit
-    buffer[4] = '\0';                      // Null terminator for string
-
-    // Display formatted speed on LCD
-    Lcd_Out(2, 8, buffer); // Display speed at row 2, column 8
 }

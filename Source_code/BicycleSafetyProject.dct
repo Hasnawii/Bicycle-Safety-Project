@@ -14,6 +14,7 @@ __savepclath
 __savestatus
 _ch
 _command
+_doprntl
 _lcd_blink_cursor_on
 _lcd_clear
 _lcd_cursor_off
@@ -78,6 +79,7 @@ bf_bit
 boot16_delay_5ms
 brgh
 brgh_bit
+buffer
 byte2double
 c
 c_bit
@@ -203,8 +205,6 @@ delay_5ms
 delay_80us
 delay_8ms
 delay_cyc
-dis
-display_speed
 div_16x16_s
 div_16x16_s_l
 div_16x16_u
@@ -276,6 +276,16 @@ intf
 intf_bit
 irp
 irp_bit
+isalnum
+isalpha
+iscntrl
+isdigit
+isgraph
+islower
+ispunct
+isspace
+isupper
+isxdigit
 lcd_chr
 lcd_chr_cp
 lcd_cmd
@@ -345,6 +355,7 @@ obf_bit
 obf_trise_bit
 oerr
 oerr_bit
+one
 option_reg
 p
 p_bit
@@ -508,6 +519,7 @@ rp0
 rp0_bit
 rp1
 rp1_bit
+rpm
 rsen
 rsen_bit
 rturn
@@ -521,7 +533,6 @@ sdiv3232l
 sen
 sen_bit
 servo_e
-servo_flag
 setfdz32
 setfov32
 setfun32
@@ -535,6 +546,7 @@ sonar_read2
 spbrg
 spen
 spen_bit
+sprintl
 sren
 sren_bit
 sspadd
@@ -593,6 +605,8 @@ t2con
 t2counts
 t2overflow
 t2time
+ten
+tenth
 tick
 tick1
 tick2
@@ -623,7 +637,8 @@ tmr2if
 tmr2if_bit
 tmr2on
 tmr2on_bit
-toggle_servo
+tolower
+toupper
 toutps0
 toutps0_bit
 toutps1
@@ -721,6 +736,7 @@ txif
 txif_bit
 txreg
 txsta
+txt
 txt1
 txt2
 ua
